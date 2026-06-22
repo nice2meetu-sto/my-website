@@ -1,0 +1,397 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Lilys AI 5일 미션 · AI 클리퍼스</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Gowun+Batang:wght@400;700&family=IBM+Plex+Sans+KR:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --ink:#241c2e;
+    --petal:#7b5ea7;        /* lily purple */
+    --petal-deep:#5a3d86;
+    --pollen:#e8b04b;       /* anther gold */
+    --leaf:#3f8f6e;         /* stem green */
+    --blush:#f4e9f6;        /* pale petal */
+    --paper:#faf6f2;
+    --line:rgba(91,61,134,.16);
+    --shadow:0 18px 50px -22px rgba(60,32,90,.45);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{scroll-behavior:smooth}
+  body{
+    font-family:'IBM Plex Sans KR',sans-serif;
+    color:var(--ink);
+    background:
+      radial-gradient(1200px 600px at 80% -10%, #f0e4f5 0%, transparent 60%),
+      radial-gradient(900px 500px at -10% 110%, #e3f2ea 0%, transparent 55%),
+      var(--paper);
+    line-height:1.6;
+    -webkit-font-smoothing:antialiased;
+  }
+  .wrap{max-width:1080px;margin:0 auto;padding:0 20px}
+
+  /* ---------- hero ---------- */
+  header.hero{
+    padding:78px 0 30px;
+    text-align:center;
+    position:relative;
+  }
+  .eyebrow{
+    font-size:.78rem;letter-spacing:.35em;text-transform:uppercase;
+    color:var(--petal);font-weight:600;margin-bottom:22px;
+  }
+  .lily-mark{
+    width:64px;height:64px;margin:0 auto 18px;display:block;
+    animation:bloom 1.1s cubic-bezier(.2,.8,.2,1) both;
+  }
+  @keyframes bloom{from{transform:scale(.4) rotate(-12deg);opacity:0}to{transform:scale(1) rotate(0);opacity:1}}
+  h1{
+    font-family:'Gowun Batang',serif;
+    font-weight:700;
+    font-size:clamp(2.3rem,6vw,3.7rem);
+    line-height:1.12;letter-spacing:-.01em;
+    color:var(--ink);
+  }
+  h1 .accent{color:var(--petal-deep);position:relative}
+  .lede{
+    margin:20px auto 0;max-width:560px;
+    font-size:1.05rem;color:#5b4f66;font-weight:300;
+  }
+  .meta-row{
+    margin-top:26px;display:flex;gap:10px;justify-content:center;flex-wrap:wrap;
+  }
+  .chip{
+    font-size:.8rem;padding:6px 14px;border-radius:999px;
+    background:#fff;border:1px solid var(--line);color:var(--petal-deep);
+    font-weight:500;
+  }
+  .cta{
+    display:inline-flex;align-items:center;gap:8px;
+    margin-top:26px;text-decoration:none;
+    font-family:inherit;font-weight:600;font-size:1rem;
+    color:#fff;background:linear-gradient(135deg,var(--petal-deep),var(--petal));
+    padding:13px 26px;border-radius:999px;
+    box-shadow:0 12px 28px -12px rgba(91,61,134,.7);
+    transition:transform .15s ease, box-shadow .25s ease;
+  }
+  .cta svg{transition:transform .2s ease}
+  .cta:hover{transform:translateY(-2px);box-shadow:0 16px 34px -12px rgba(91,61,134,.8)}
+  .cta:hover svg{transform:translate(2px,-2px)}
+  .cta:focus-visible{outline:3px solid var(--pollen);outline-offset:3px}
+
+  /* ---------- intro card ---------- */
+  .intro{
+    margin:46px 0 10px;
+    background:linear-gradient(135deg,var(--petal-deep),var(--petal));
+    color:#fff;border-radius:26px;padding:38px 38px 34px;
+    box-shadow:var(--shadow);position:relative;overflow:hidden;
+  }
+  .intro::after{
+    content:"";position:absolute;right:-60px;top:-60px;width:240px;height:240px;
+    background:radial-gradient(circle,rgba(232,176,75,.4),transparent 65%);
+  }
+  .intro .tag{font-size:.74rem;letter-spacing:.3em;text-transform:uppercase;opacity:.85;font-weight:600}
+  .intro h2{font-family:'Gowun Batang',serif;font-size:1.9rem;margin:10px 0 6px;font-weight:700}
+  .intro p.sub{opacity:.92;font-weight:300;max-width:640px;margin-bottom:22px}
+  .facts{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:18px;position:relative;z-index:1}
+  .fact{background:rgba(255,255,255,.12);border:1px solid rgba(255,255,255,.22);border-radius:16px;padding:16px 18px}
+  .fact .k{font-size:.72rem;letter-spacing:.12em;text-transform:uppercase;opacity:.8;margin-bottom:6px}
+  .fact .v{font-family:'Gowun Batang',serif;font-size:1.05rem;font-weight:700;line-height:1.35}
+  .fact .v small{display:block;font-family:'IBM Plex Sans KR';font-weight:300;font-size:.82rem;opacity:.85;margin-top:3px}
+
+  /* ---------- day nav ---------- */
+  .daynav{
+    position:sticky;top:0;z-index:40;
+    display:flex;gap:8px;justify-content:center;flex-wrap:wrap;
+    padding:16px 0;margin:34px 0 8px;
+    background:linear-gradient(var(--paper) 70%,transparent);
+  }
+  .daynav button{
+    font-family:inherit;cursor:pointer;
+    border:1px solid var(--line);background:#fff;color:var(--petal-deep);
+    border-radius:14px;padding:9px 16px;font-weight:600;font-size:.92rem;
+    display:flex;flex-direction:column;align-items:center;gap:1px;min-width:60px;
+    transition:transform .15s ease, background .2s, color .2s, box-shadow .2s;
+  }
+  .daynav button .num{font-size:.66rem;font-weight:500;opacity:.6}
+  .daynav button:hover{transform:translateY(-2px)}
+  .daynav button.active{background:var(--petal-deep);color:#fff;box-shadow:var(--shadow)}
+  .daynav button.active .num{opacity:.85}
+  .daynav button.done::after{content:"✓";color:var(--leaf);font-size:.72rem;font-weight:800}
+  .daynav button.active.done::after{color:var(--pollen)}
+
+  /* ---------- mission cards ---------- */
+  .stem{position:relative;padding-bottom:40px}
+  .card{
+    background:#fff;border:1px solid var(--line);border-radius:24px;
+    margin-bottom:18px;overflow:hidden;box-shadow:0 8px 30px -20px rgba(60,32,90,.5);
+    transition:box-shadow .25s ease;
+  }
+  .card.open{box-shadow:var(--shadow)}
+  .card-head{
+    width:100%;text-align:left;cursor:pointer;border:0;background:transparent;
+    font-family:inherit;display:flex;align-items:center;gap:18px;
+    padding:22px 26px;color:var(--ink);
+  }
+  .leaf-num{
+    flex:0 0 auto;width:52px;height:52px;border-radius:50% 50% 50% 8px;
+    background:linear-gradient(135deg,var(--leaf),#2f7a5b);
+    color:#fff;display:grid;place-items:center;font-weight:700;font-size:1.15rem;
+    transform:rotate(-8deg);box-shadow:0 6px 14px -6px rgba(47,122,91,.7);
+  }
+  .head-text{flex:1;min-width:0}
+  .day-label{font-size:.74rem;letter-spacing:.18em;text-transform:uppercase;color:var(--petal);font-weight:600}
+  .card-title{font-family:'Gowun Batang',serif;font-size:1.32rem;font-weight:700;line-height:1.3;margin-top:2px}
+  .card-sub{font-size:.9rem;color:#6c6076;font-weight:300;margin-top:3px}
+  .chev{flex:0 0 auto;width:30px;height:30px;border-radius:50%;background:var(--blush);
+    display:grid;place-items:center;color:var(--petal-deep);transition:transform .3s ease}
+  .card.open .chev{transform:rotate(180deg)}
+
+  .card-body{max-height:0;overflow:hidden;transition:max-height .4s ease}
+  .card-body-inner{padding:0 26px 26px 96px}
+  @media(max-width:560px){.card-body-inner{padding:0 22px 24px 22px}}
+  .lock-note{font-size:.82rem;color:#9a8fa6;font-style:italic;padding:0 26px 22px 96px}
+  @media(max-width:560px){.lock-note{padding:0 22px 20px 22px}}
+
+  ol.steps{list-style:none;counter-reset:s;margin:6px 0 0}
+  ol.steps li{counter-increment:s;position:relative;padding:8px 0 8px 32px;font-size:.97rem;color:#3d3447;border-bottom:1px dashed var(--line)}
+  ol.steps li:last-child{border-bottom:0}
+  ol.steps li::before{
+    content:counter(s);position:absolute;left:0;top:8px;
+    width:21px;height:21px;border-radius:50%;background:var(--blush);color:var(--petal-deep);
+    font-size:.72rem;font-weight:700;display:grid;place-items:center;
+  }
+  .result{
+    margin-top:16px;background:var(--blush);border-radius:14px;padding:13px 16px;
+    font-size:.9rem;color:var(--petal-deep);display:flex;gap:9px;align-items:flex-start;
+  }
+  .result b{font-weight:600}
+  .result .ico{flex:0 0 auto}
+
+  /* ---------- safety footer line ---------- */
+  .safety{
+    margin:8px 0 14px;border-radius:16px;border:1px dashed var(--leaf);
+    background:rgba(63,143,110,.07);padding:14px 18px;
+    font-size:.86rem;color:#2f6c52;display:flex;gap:10px;align-items:flex-start;
+  }
+  .safety b{font-weight:600}
+
+  footer{text-align:center;padding:30px 0 60px;color:#9a8fa6;font-size:.82rem}
+  footer .src{margin-top:8px;font-size:.74rem;opacity:.8}
+
+  @media (prefers-reduced-motion:reduce){
+    *{animation:none!important;transition:none!important}
+  }
+</style>
+</head>
+<body>
+
+<header class="hero">
+  <div class="wrap">
+    <svg class="lily-mark" viewBox="0 0 64 64" fill="none" aria-hidden="true">
+      <g stroke="#5a3d86" stroke-width="2.4" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M32 52 C32 38 32 30 32 22" stroke="#3f8f6e"/>
+        <path d="M32 24 C22 10 14 14 18 26 C24 34 32 30 32 24Z" fill="#f4e9f6"/>
+        <path d="M32 24 C42 10 50 14 46 26 C40 34 32 30 32 24Z" fill="#f4e9f6"/>
+        <path d="M32 22 C26 6 32 2 32 2 C32 2 38 6 32 22Z" fill="#ede0f4"/>
+      </g>
+      <circle cx="32" cy="22" r="3" fill="#e8b04b"/>
+    </svg>
+    <p class="eyebrow">AI 클리퍼스 · 주간 미션</p>
+    <h1>Lilys AI와 함께하는<br><span class="accent">5일 요약 챌린지</span></h1>
+    <p class="lede">월요일부터 금요일까지, 하루 한 장씩 잎이 펼쳐집니다. 가입부터 시각화·내보내기까지 단계적으로 익혀보세요.</p>
+    <div class="meta-row">
+      <span class="chip">⏱ 미션당 약 5분</span>
+      <span class="chip">🆓 무료로 가능</span>
+      <span class="chip">📎 결과 공유형</span>
+    </div>
+    <a class="cta" href="https://lilys.ai" target="_blank" rel="noopener">
+      Lilys AI 바로가기
+      <svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7 17 17 7"/><path d="M8 7h9v9"/></svg>
+    </a>
+  </div>
+</header>
+
+<main class="wrap">
+
+  <!-- INTRO CARD -->
+  <section class="intro">
+    <p class="tag">About · Lilys AI</p>
+    <h2>릴리스 AI는 어떤 도구일까?</h2>
+    <p class="sub">유튜브·웹페이지·PDF·텍스트를 자동으로 요약해 노트로 만들어주는 한국 스타트업의 AI 리서치 도구입니다. 이번 주는 <b>유튜브,웹사이트 등 자료 분석</b>에 집중합니다.</p>
+    <div class="facts">
+      <div class="fact"><div class="k">국적</div><div class="v">대한민국 🇰🇷<small>2023년 출시</small></div></div>
+      <div class="fact"><div class="k">규모</div><div class="v">110만 사용자<small>2026.4 기준</small></div></div>
+      <div class="fact"><div class="k">핵심 기능</div><div class="v">요약 · 노트화<small>마인드맵 · 카툰 · 내보내기</small></div></div>
+      <div class="fact"><div class="k">이번 주 초점</div><div class="v">웹사이트 분석<small>링크 입력 → 요약 → 시각화</small></div></div>
+    </div>
+  </section>
+
+  <!-- SAFETY LINE -->
+  <div class="safety">
+    <span>🔒</span>
+    <span><b>보안 한 줄.</b> 미션 자료는 <b>공개된 웹페이지·보도자료</b>처럼 민감정보가 없는 것만 사용하세요. 재단 내부·개인정보 자료는 업로드 지양.</span>
+  </div>
+
+  <!-- DAY NAV -->
+  <nav class="daynav" id="daynav" aria-label="요일 선택"></nav>
+
+  <!-- MISSION CARDS -->
+  <div class="stem" id="cards"></div>
+
+</main>
+
+<footer class="wrap">
+  <p>AI 클리퍼스 · Lilys AI 주간 미션 카드</p>
+  <p class="src">요약 결과는 100% 정확하지 않을 수 있으니, 공유 전 핵심 내용은 한 번 검토하세요.</p>
+</footer>
+
+<script>
+const MISSIONS = [
+  {
+    day:"월", num:"01", en:"MON",
+    title:"가입하고 첫 웹페이지 요약하기",
+    sub:"계정을 만들고 도구와 친해지는 날",
+    steps:[
+      "구글 계정으로 lilys.ai 가입",
+      "원하는 유튜브 채널 한 개 구독",
+      "‘핵심 요약’ 스타일로 결과 받아보기"
+    ],
+    result:"유튜브 요약 노트 1개 공유"
+  },
+  {
+    day:"화", num:"02", en:"TUE",
+    title:"요약 스타일 비교 & 정확도 높이기",
+    sub:"같은 자료, 다른 형식으로 보는 날",
+    steps:[
+      "긴 웹페이지(정책 보고서·위키 문서 등) 1개 선택",
+      "‘타임라인 요약’과 ‘핵심 정리’ 등 스타일 선택해 요약",
+      "출처 추적 기능으로 요약 문장이 원문 어디서 왔는지 확인"
+    ],
+    result:"웹페이지 요약 결과 공유"
+  },
+  {
+    day:"수", num:"03", en:"WED",
+    title:"마인드맵 & 카툰으로 시각화하기",
+    sub:"글을 그림으로 바꿔보는 날",
+    steps:[
+      "화요일에 만든 웹페이지 요약을 마인드맵으로 변환",
+      "리포트 템플릿 중 ‘카툰(cartoon)’ 적용해보기",
+      "인포그래픽 템플릿도 하나 더 시도",
+    ],
+    result:"시도해본 템플릿 결과 공유"
+  },
+  {
+    day:"목", num:"04", en:"THU",
+    title:"여러 웹사이트 비교 & AI 채팅",
+    sub:"도구에게 질문을 던지는 날",
+    steps:[
+      "같은 주제의 웹페이지 2개를 각각 요약 (예: 타 지자체 사이트, 찬반 기사)",
+      "생성된 요약에 AI 채팅으로 궁금한 점 질문하기",
+      "웹 검색 기능으로 요약 내용 보강 요청"
+    ],
+    result:"비교 정리 + Q&A 화면 등 공유"
+  },
+  {
+    day:"금", num:"05", en:"FRI",
+    title:"완성형 노트 만들고 내보내기",
+    sub:"한 주를 결과물로 마무리하는 날",
+    steps:[
+      "이번 주 자료 중 하나를 완성형 노트로 다듬기 (표·다이어그램 포함)",
+      "PDF · DOCX · Markdown · Notion 등으로 내보내기 테스트",
+      "한 주 회고: 가장 유용했던 기능 생각해보기"
+    ],
+    result:"공유 링크 전달하기"
+  }
+];
+
+// today → which day to unlock (Mon=1..Fri=5; weekend unlocks all)
+// KST(Asia/Seoul) 기준으로 요일 계산 — 사용자 기기 시간대와 무관하게 한국 시각 사용
+const kstNow = new Date(new Date().toLocaleString('en-US',{timeZone:'Asia/Seoul'}));
+const jsDay = kstNow.getDay(); // 0 Sun .. 6 Sat (KST)
+const todayIndex = (jsDay===0 || jsDay===6) ? 5 : jsDay; // how many cards unlocked
+const cards = document.getElementById('cards');
+const nav = document.getElementById('daynav');
+
+MISSIONS.forEach((m,i)=>{
+  const unlocked = (i+1) <= todayIndex;
+
+  // nav button
+  const b=document.createElement('button');
+  b.innerHTML=`<span>${m.day}</span><span class="num">${m.en}</span>`;
+  b.dataset.target='card-'+i;
+  if(unlocked) b.classList.add('done');
+  b.addEventListener('click',()=>{
+    const c=document.getElementById('card-'+i);
+    openCard(c,true);
+    c.scrollIntoView({behavior:'smooth',block:'center'});
+  });
+  nav.appendChild(b);
+
+  // card
+  const card=document.createElement('div');
+  card.className='card';card.id='card-'+i;
+  card.innerHTML=`
+    <button class="card-head" aria-expanded="false">
+      <span class="leaf-num">${m.num}</span>
+      <span class="head-text">
+        <span class="day-label">${m.day}요일 · ${m.en}</span>
+        <span class="card-title">${unlocked? m.title : "🌱 아직 봉오리예요"}</span>
+        <span class="card-sub">${unlocked? m.sub : m.day+"요일에 잎이 펼쳐집니다"}</span>
+      </span>
+      <span class="chev">⌄</span>
+    </button>
+    <div class="card-body">
+      <div class="card-body-inner">
+        ${unlocked ? `
+          <ol class="steps">${m.steps.map(s=>`<li>${s}</li>`).join('')}</ol>
+          <div class="result"><span class="ico">📌</span><span><b>오늘의 결과물 — </b>${m.result}</span></div>
+        ` : ''}
+      </div>
+      ${unlocked ? '' : `<p class="lock-note">🔒 ${m.day}요일이 되면 이 카드가 열립니다. 차근차근, 하루에 하나씩.</p>`}
+    </div>`;
+  cards.appendChild(card);
+
+  const head=card.querySelector('.card-head');
+  head.addEventListener('click',()=>toggleCard(card));
+});
+
+function openCard(card,force){
+  const body=card.querySelector('.card-body');
+  const head=card.querySelector('.card-head');
+  card.classList.add('open');
+  head.setAttribute('aria-expanded','true');
+  body.style.maxHeight=body.scrollHeight+'px';
+  syncNav();
+}
+function toggleCard(card){
+  const body=card.querySelector('.card-body');
+  const head=card.querySelector('.card-head');
+  const isOpen=card.classList.contains('open');
+  if(isOpen){
+    card.classList.remove('open');
+    head.setAttribute('aria-expanded','false');
+    body.style.maxHeight=0;
+  } else openCard(card);
+  syncNav();
+}
+function syncNav(){
+  const btns=nav.querySelectorAll('button');
+  btns.forEach((b,i)=>{
+    const c=document.getElementById('card-'+i);
+    b.classList.toggle('active', c.classList.contains('open'));
+  });
+}
+
+// auto-open today's card on load
+window.addEventListener('load',()=>{
+  const idx=Math.max(0,todayIndex-1);
+  const c=document.getElementById('card-'+idx);
+  if(c) setTimeout(()=>openCard(c),350);
+});
+</script>
+</body>
+</html>
