@@ -22,6 +22,8 @@ var HEADER_MAP = {
   '성명':      'name',
   '직급':      'grade',
   '소속':      'team',
+  '근무지':    'worksite',
+  '센터':      'worksite',   // '근무지'/'센터' 헤더 모두 허용 (소속팀의 하위 구분)
   '입사일':    'hireDate',
   '부여연차':  'granted',
   '사용합계':  'used',
@@ -135,6 +137,7 @@ function handleData() {
         name:       String(name || '').trim(),
         grade:      String(pick('grade') || '').trim(),
         team:       String(pick('team') || '').trim(),
+        worksite:   String(pick('worksite') || '').trim(),
         hireDate:   normalizeDate(pick('hireDate')),
         granted:    normalizeNumber(pick('granted')),
         used:       normalizeNumber(pick('used')),

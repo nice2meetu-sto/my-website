@@ -113,6 +113,8 @@
   .members th,.members td{padding:10px 14px;text-align:left;font-size:.86rem;border-bottom:1px solid #f0f1f5}
   .members th{font-size:.74rem;color:var(--muted);font-weight:600;background:#fafbfd}
   .members tr:last-child td{border-bottom:0}
+  .members tr.center-row td{background:#f3f2fb;color:var(--main-deep);font-weight:700;font-size:.8rem;padding:8px 14px;border-bottom:1px solid #e4e2f4}
+  .members tr.center-row .center-count{color:var(--muted);font-weight:500;font-size:.76rem;margin-left:8px}
   .members td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .m-name{font-weight:700}
   .m-grade{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:3px}
@@ -484,6 +486,33 @@ function memberMatchesFilter(row){
   return true;
 }
 
+// 공통 정렬 기준: 사번(오름차순)
+function byEmpId(a, b){ return String(a.empId).localeCompare(String(b.empId), undefined, {numeric:true}); }
+
+// 팀원 한 행 HTML
+function memberRowHtml(r){
+  const subBadge = isSubmitted(r)
+    ? `<span class="badge sub">✓ 제출</span>`
+    : `<span class="badge nosub">− 미제출</span>`;
+  let resBadge = "";
+  if(isSubmitted(r) && r.result){
+    resBadge = r.result === "일치"
+      ? `<span class="badge ok">일치</span>`
+      : `<span class="badge no">불일치</span>`;
+  }
+  const desig = isSubmitted(r)
+    ? `<span class="m-desig" title="${escapeAttr(r.designated)}">${escapeHtml(r.designated)}</span>`
+    : `<span class="m-desig empty">—</span>`;
+  return `<tr>
+    <td><span class="m-name">${escapeHtml(r.name)}</span><span class="m-grade">${escapeHtml(r.grade)}</span></td>
+    <td class="m-emp">${escapeHtml(r.empId)}</td>
+    <td class="num">${fmtNum(r.remaining)}</td>
+    <td>${subBadge} ${resBadge}</td>
+    <td>${desig}</td>
+    <td class="num"><button class="btn sm" onclick="goEdit('${escapeAttr(r.empId)}')">${isSubmitted(r)?'수정':'입력'}</button></td>
+  </tr>`;
+}
+
 function groupTargetsByTeam(){
   const map = {};
   for(const row of state.rows){
@@ -522,34 +551,33 @@ function renderTeams(){
     shownTeams++;
     const open = state.openTeams[name];
 
-    // 팀원 정렬: 미제출 먼저, 그다음 이름
-    visible.sort((a,b)=>{
-      const sa = isSubmitted(a)?1:0, sb = isSubmitted(b)?1:0;
-      return sa - sb || a.name.localeCompare(b.name, "ko");
-    });
+    // 팀원 정렬: 사번 순
+    visible.sort((a,b)=> byEmpId(a,b));
 
-    const rowsHtml = visible.map(r=>{
-      const subBadge = isSubmitted(r)
-        ? `<span class="badge sub">✓ 제출</span>`
-        : `<span class="badge nosub">− 미제출</span>`;
-      let resBadge = "";
-      if(isSubmitted(r) && r.result){
-        resBadge = r.result === "일치"
-          ? `<span class="badge ok">일치</span>`
-          : `<span class="badge no">불일치</span>`;
-      }
-      const desig = isSubmitted(r)
-        ? `<span class="m-desig" title="${escapeAttr(r.designated)}">${escapeHtml(r.designated)}</span>`
-        : `<span class="m-desig empty">—</span>`;
-      return `<tr>
-        <td><span class="m-name">${escapeHtml(r.name)}</span><span class="m-grade">${escapeHtml(r.grade)}</span></td>
-        <td class="m-emp">${escapeHtml(r.empId)}</td>
-        <td class="num">${fmtNum(r.remaining)}</td>
-        <td>${subBadge} ${resBadge}</td>
-        <td>${desig}</td>
-        <td class="num"><button class="btn sm" onclick="goEdit('${escapeAttr(r.empId)}')">${isSubmitted(r)?'수정':'입력'}</button></td>
-      </tr>`;
-    }).join("");
+    // 근무지(센터)가 하나라도 있으면 소속팀 하위로 센터 그룹핑, 없으면 평면 목록
+    const CENTER_NONE = " "; // 근무지 미지정 → 맨 뒤
+    const hasCenter = visible.some(r => (r.worksite || "").trim() !== "");
+    let rowsHtml;
+    if(!hasCenter){
+      rowsHtml = visible.map(memberRowHtml).join("");
+    }else{
+      const cmap = {};
+      visible.forEach(r=>{
+        const c = (r.worksite || "").trim() || CENTER_NONE;
+        (cmap[c] = cmap[c] || []).push(r);
+      });
+      const centers = Object.keys(cmap).sort((a,b)=>{
+        if(a===CENTER_NONE) return 1; if(b===CENTER_NONE) return -1;
+        return a.localeCompare(b, "ko");
+      });
+      rowsHtml = centers.map(c=>{
+        const list = cmap[c].slice().sort(byEmpId);
+        const label = c===CENTER_NONE ? "근무지 미지정" : c;
+        const cs = list.filter(isSubmitted).length;
+        const centerHead = `<tr class="center-row"><td colspan="6">🏢 ${escapeHtml(label)}<span class="center-count">제출 ${cs}/${list.length}</span></td></tr>`;
+        return centerHead + list.map(memberRowHtml).join("");
+      }).join("");
+    }
 
     html += `
       <div class="team ${open?'open':''}" data-team="${escapeAttr(name)}">
@@ -593,7 +621,7 @@ function renderNonTarget(){
     (byReason[reason] = byReason[reason] || []).push(r);
   }
   body.innerHTML = Object.keys(byReason).sort((a,b)=>a.localeCompare(b,"ko")).map(reason=>{
-    const list = byReason[reason];
+    const list = byReason[reason].slice().sort(byEmpId);
     const names = list.map(r=>`${escapeHtml(r.name)}<span style="opacity:.6">(${escapeHtml(r.team)})</span>`).join(" · ");
     return `<div class="nt-group"><h4>${escapeHtml(reason)} · ${list.length}명</h4><div class="names">${names}</div></div>`;
   }).join("");
@@ -649,7 +677,7 @@ function setupSearch(){
     if(q === ""){ ac.classList.remove("show"); return; }
     matches = state.rows.filter(r =>
       r.name.toLowerCase().includes(q) || r.empId.toLowerCase().includes(q)
-    ).slice(0, 30);
+    ).sort(byEmpId).slice(0, 30);
     activeIdx = -1;
     if(matches.length === 0){
       ac.innerHTML = `<div class="ac-empty">검색 결과가 없습니다.</div>`;
@@ -660,9 +688,10 @@ function setupSearch(){
         ? `<span class="ac-badge" style="background:var(--main-soft);color:var(--main)">제출</span>`
         : `<span class="ac-badge" style="background:#f0f1f5;color:#9498a5">미제출</span>`;
       const tgt = isTarget(r) ? "" : `<span class="ac-meta" style="color:var(--warn)"> · ${escapeHtml(r.status)}</span>`;
+      const ws = (r.worksite||"").trim() ? ` · ${escapeHtml(r.worksite)}` : "";
       return `<div class="ac-item" data-idx="${i}">
         <span class="ac-name">${escapeHtml(r.name)}</span>
-        <span class="ac-meta">· ${escapeHtml(r.empId)} · ${escapeHtml(r.team)}${tgt}</span>
+        <span class="ac-meta">· ${escapeHtml(r.empId)} · ${escapeHtml(r.team)}${ws}${tgt}</span>
         ${badge}</div>`;
     }).join("");
     ac.classList.add("show");
@@ -751,7 +780,7 @@ function renderEditor(){
       <div class="pc-top">
         <div>
           <div class="pc-name">${escapeHtml(row.name)}<span class="g">${escapeHtml(row.grade)}</span></div>
-          <div class="pc-meta">사번 ${escapeHtml(row.empId)} · ${escapeHtml(row.team)}<br>입사일 ${escapeHtml(row.hireDate || "-")}</div>
+          <div class="pc-meta">사번 ${escapeHtml(row.empId)} · ${escapeHtml(row.team)}${(row.worksite||"").trim()?` · ${escapeHtml(row.worksite)}`:""}<br>입사일 ${escapeHtml(row.hireDate || "-")}</div>
         </div>
         <div class="pc-nums">
           <div class="pc-num"><div class="k">발생연차</div><div class="v">${fmtNum(row.granted)}</div></div>
