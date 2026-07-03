@@ -88,6 +88,8 @@
   .segbtns{display:inline-flex;background:#eceef3;border-radius:11px;padding:3px}
   .segbtns button{border:0;background:transparent;padding:7px 13px;font-size:.83rem;font-weight:600;color:var(--muted);border-radius:8px;cursor:pointer}
   .segbtns button.active{background:#fff;color:var(--main);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .team-search{padding:8px 12px;font-size:.85rem;border:1px solid var(--border);border-radius:10px;font-family:inherit;background:#fff;min-width:170px}
+  .team-search:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
   .togglelabel{display:inline-flex;align-items:center;gap:7px;font-size:.83rem;color:var(--ink);cursor:pointer;user-select:none}
   .spacer{flex:1}
 
@@ -271,6 +273,7 @@
         <button data-f="sub">제출완료만</button>
         <button data-f="mismatch">불일치만</button>
       </div>
+      <input type="text" class="team-search" id="teamSearch" placeholder="🔍 팀 검색…" autocomplete="off">
       <label class="togglelabel"><input type="checkbox" id="sortToggle"> 미제출 많은 팀 우선</label>
       <div class="spacer"></div>
       <button class="btn sm" id="copyAllBtn" title="전체 팀 미제출자 명단 복사">📋 미제출자 명단 복사</button>
@@ -318,6 +321,7 @@ const state = {
   byId: {},
   updatedAt: "",
   teamFilter: "all",
+  teamQuery: "",
   sortByNosub: false,
   openTeams: {},   // 팀명 -> 펼침 여부
   selected: null,  // 현재 편집 중 empId
@@ -528,6 +532,10 @@ function renderTeams(){
   const groups = groupTargetsByTeam();
   let teamNames = Object.keys(groups);
 
+  // 팀 검색어 필터
+  const tq = (state.teamQuery || "").trim().toLowerCase();
+  if(tq) teamNames = teamNames.filter(n => n.toLowerCase().includes(tq));
+
   // 정렬: 기본 이름순, 옵션 시 미제출 많은 순
   if(state.sortByNosub){
     teamNames.sort((a,b)=>{
@@ -555,7 +563,7 @@ function renderTeams(){
     visible.sort((a,b)=> byEmpId(a,b));
 
     // 근무지(센터)가 하나라도 있으면 소속팀 하위로 센터 그룹핑, 없으면 평면 목록
-    const CENTER_NONE = " "; // 근무지 미지정 → 맨 뒤
+    const CENTER_NONE = "__none__"; // 근무지 미지정 → 맨 뒤
     const hasCenter = visible.some(r => (r.worksite || "").trim() !== "");
     let rowsHtml;
     if(!hasCenter){
@@ -602,7 +610,7 @@ function renderTeams(){
 
   host.innerHTML = shownTeams
     ? html
-    : `<div class="emptyhint">해당 조건에 맞는 대상자가 없습니다.</div>`;
+    : `<div class="emptyhint">${tq ? `'${escapeHtml(state.teamQuery.trim())}' 와(과) 일치하는 팀이 없습니다.` : "해당 조건에 맞는 대상자가 없습니다."}</div>`;
 
   renderNonTarget();
 }
@@ -679,10 +687,7 @@ function setupSearch(){
       r.name.toLowerCase().includes(q) || r.empId.toLowerCase().includes(q)
     ).sort(byEmpId).slice(0, 30);
     activeIdx = -1;
-    if(matches.length === 0){
-      ac.innerHTML = `<div class="ac-empty">검색 결과가 없습니다.</div>`;
-      ac.classList.add("show"); return;
-    }
+    if(matches.length === 0){ ac.innerHTML = ""; ac.classList.remove("show"); return; }
     ac.innerHTML = matches.map((r,i)=>{
       const badge = isSubmitted(r)
         ? `<span class="ac-badge" style="background:var(--main-soft);color:var(--main)">제출</span>`
@@ -1044,6 +1049,10 @@ function init(){
   });
   document.getElementById("sortToggle").addEventListener("change", e=>{
     state.sortByNosub = e.target.checked; renderTeams();
+  });
+  // 팀 검색
+  document.getElementById("teamSearch").addEventListener("input", e=>{
+    state.teamQuery = e.target.value; renderTeams();
   });
   // 비대상자 토글
   document.getElementById("ntHead").addEventListener("click", ()=>{
