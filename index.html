@@ -49,7 +49,7 @@
   .top-actions{display:flex;align-items:center;gap:10px}
   .sync{font-size:.76rem;color:var(--muted);text-align:right;line-height:1.35}
   .btn{cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--ink);
-    border-radius:10px;padding:9px 14px;font-size:.86rem;font-weight:500;
+    border-radius:10px;padding:9px 14px;font-size:.86rem;font-weight:500;text-decoration:none;
     display:inline-flex;align-items:center;gap:6px;transition:.15s}
   .btn:hover{background:#f7f7fb;border-color:#d3d6df}
   .btn.primary{background:var(--main);color:#fff;border-color:var(--main)}
@@ -279,7 +279,8 @@
       <input type="text" class="team-search" id="teamSearch" placeholder="🔍 팀 검색…" autocomplete="off">
       <label class="togglelabel"><input type="checkbox" id="sortToggle"> 미제출 많은 팀 우선</label>
       <div class="spacer"></div>
-      <button class="btn sm" id="copyAllBtn" title="전체 팀 미제출자 명단 복사">📋 미제출자 명단 복사</button>
+      <a class="btn sm" id="dbLinkBtn" href="https://docs.google.com/spreadsheets/d/1LeKvIGUr8RP357PowwifRZnfaajubWsJ7kB9bwU7Pcc/edit?gid=0#gid=0" target="_blank" rel="noopener" title="구글시트(DB) 새 탭에서 열기">🗄️ DB 바로가기</a>
+      <button class="btn sm" id="downloadNosubBtn" title="미제출자 명단 CSV 다운로드">⬇️ 미제출자 명단 다운받기</button>
     </div>
     <div id="teamList"></div>
 
@@ -648,31 +649,39 @@ function renderNonTarget(){
 /* ==========================================================================
  *  미제출자 명단 복사
  * ========================================================================== */
-function nosubTextForTeam(name, members){
-  const nosub = members.filter(r=>!isSubmitted(r)).map(r=>r.name);
-  if(nosub.length === 0) return null;
-  return `${name}: ${nosub.join(", ")}`;
+// CSV 셀 이스케이프
+function csvCell(v){
+  const s = (v == null ? "" : String(v));
+  return /[",\r\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s;
 }
-function copyAllNosub(){
-  const groups = groupTargetsByTeam();
-  const lines = Object.keys(groups).sort((a,b)=>a.localeCompare(b,"ko"))
-    .map(n => nosubTextForTeam(n, groups[n]))
-    .filter(Boolean);
-  if(lines.length === 0){ toast("전체 대상자가 모두 제출했습니다. 🎉", "ok"); return; }
-  copyText(lines.join("\n"));
+function dateStamp(){
+  const d = new Date();
+  const p = n => (n < 10 ? "0" : "") + n;
+  return `${d.getFullYear()}${p(d.getMonth()+1)}${p(d.getDate())}`;
 }
-function copyText(text){
-  const done = ()=> toast("클립보드에 복사했습니다.", "ok");
-  if(navigator.clipboard && navigator.clipboard.writeText){
-    navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text, done));
-  }else fallbackCopy(text, done);
-}
-function fallbackCopy(text, done){
-  const ta = document.createElement("textarea");
-  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
-  document.body.appendChild(ta); ta.select();
-  try{ document.execCommand("copy"); done(); }catch(e){ toast("복사 실패 — 수동 복사 필요","err"); }
-  document.body.removeChild(ta);
+// 미제출자 명단 CSV 다운로드 (연번·사번·이름·소속·근무지·입사일)
+function downloadNosubCsv(){
+  const nosub = state.rows
+    .filter(r => isTarget(r) && !isSubmitted(r))
+    .slice()
+    .sort(byEmpId);
+  if(nosub.length === 0){ toast("전체 대상자가 모두 제출했습니다. 🎉", "ok"); return; }
+
+  const headers = ["연번","사번","이름","소속","근무지","입사일"];
+  const body = nosub.map(r => [r.no, r.empId, r.name, r.team, r.worksite, r.hireDate]);
+  const csv = [headers, ...body].map(cols => cols.map(csvCell).join(",")).join("\r\n");
+
+  // UTF-8 BOM 추가 (엑셀에서 한글 깨짐 방지)
+  const blob = new Blob(["﻿" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `미제출자명단_${dateStamp()}.csv`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+  toast(`미제출자 ${nosub.length}명 명단을 다운로드했습니다.`, "ok");
 }
 
 /* ==========================================================================
@@ -1062,8 +1071,8 @@ function init(){
   document.getElementById("ntHead").addEventListener("click", ()=>{
     document.getElementById("nonTarget").classList.toggle("open");
   });
-  // 복사
-  document.getElementById("copyAllBtn").addEventListener("click", copyAllNosub);
+  // 미제출자 명단 CSV 다운로드
+  document.getElementById("downloadNosubBtn").addEventListener("click", downloadNosubCsv);
   // 새로고침 / 재시도
   document.getElementById("refreshBtn").addEventListener("click", loadData);
   document.getElementById("retryBtn").addEventListener("click", loadData);
