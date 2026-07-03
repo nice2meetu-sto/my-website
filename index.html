@@ -115,8 +115,12 @@
   .members th,.members td{padding:10px 14px;text-align:left;font-size:.86rem;border-bottom:1px solid #f0f1f5}
   .members th{font-size:.74rem;color:var(--muted);font-weight:600;background:#fafbfd}
   .members tr:last-child td{border-bottom:0}
-  .members tr.center-row td{background:#f3f2fb;color:var(--main-deep);font-weight:700;font-size:.8rem;padding:8px 14px;border-bottom:1px solid #e4e2f4}
+  .members tr.center-row td{background:#f3f2fb;color:var(--main-deep);font-weight:700;font-size:.8rem;padding:7px 14px 7px 26px;border-bottom:1px solid #e4e2f4;border-left:3px solid var(--main)}
+  .members tr.center-row .center-tag{display:inline-block}
   .members tr.center-row .center-count{color:var(--muted);font-weight:500;font-size:.76rem;margin-left:8px}
+  /* 근무지 하위 팀원: 소속팀보다 한 칸 들여쓰기 */
+  .members tr.in-center td.mcol-name{padding-left:32px;position:relative}
+  .members tr.in-center td.mcol-name::before{content:"";position:absolute;left:16px;top:0;bottom:0;width:2px;background:#e4e2f4}
   .members td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
   .m-name{font-weight:700}
   .m-grade{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:3px}
@@ -493,8 +497,8 @@ function memberMatchesFilter(row){
 // 공통 정렬 기준: 사번(오름차순)
 function byEmpId(a, b){ return String(a.empId).localeCompare(String(b.empId), undefined, {numeric:true}); }
 
-// 팀원 한 행 HTML
-function memberRowHtml(r){
+// 팀원 한 행 HTML (inCenter=true면 근무지 하위로 들여쓰기)
+function memberRowHtml(r, inCenter){
   const subBadge = isSubmitted(r)
     ? `<span class="badge sub">✓ 제출</span>`
     : `<span class="badge nosub">− 미제출</span>`;
@@ -507,8 +511,8 @@ function memberRowHtml(r){
   const desig = isSubmitted(r)
     ? `<span class="m-desig" title="${escapeAttr(r.designated)}">${escapeHtml(r.designated)}</span>`
     : `<span class="m-desig empty">—</span>`;
-  return `<tr>
-    <td><span class="m-name">${escapeHtml(r.name)}</span><span class="m-grade">${escapeHtml(r.grade)}</span></td>
+  return `<tr class="${inCenter?'in-center':''}">
+    <td class="mcol-name"><span class="m-name">${escapeHtml(r.name)}</span><span class="m-grade">${escapeHtml(r.grade)}</span></td>
     <td class="m-emp">${escapeHtml(r.empId)}</td>
     <td class="num">${fmtNum(r.remaining)}</td>
     <td>${subBadge} ${resBadge}</td>
@@ -532,9 +536,14 @@ function renderTeams(){
   const groups = groupTargetsByTeam();
   let teamNames = Object.keys(groups);
 
-  // 팀 검색어 필터
+  // 팀 검색어 필터 (팀명 또는 근무지 매칭)
   const tq = (state.teamQuery || "").trim().toLowerCase();
-  if(tq) teamNames = teamNames.filter(n => n.toLowerCase().includes(tq));
+  if(tq){
+    teamNames = teamNames.filter(n =>
+      n.toLowerCase().includes(tq) ||
+      groups[n].some(r => (r.worksite || "").toLowerCase().includes(tq))
+    );
+  }
 
   // 정렬: 기본 이름순, 옵션 시 미제출 많은 순
   if(state.sortByNosub){
@@ -554,7 +563,12 @@ function renderTeams(){
     const total = members.length;
     const sub = members.filter(isSubmitted).length;
     const pct = total ? Math.round(sub/total*100) : 0;
-    const visible = members.filter(memberMatchesFilter);
+    // 팀명이 검색어와 일치하지 않고 근무지로만 걸린 경우, 해당 근무지 팀원만 표시
+    const teamNameHit = tq && name.toLowerCase().includes(tq);
+    let visible = members.filter(memberMatchesFilter);
+    if(tq && !teamNameHit){
+      visible = visible.filter(r => (r.worksite || "").toLowerCase().includes(tq));
+    }
     if(visible.length === 0) continue; // 필터에 걸리는 팀원 없으면 팀 숨김
     shownTeams++;
     const open = state.openTeams[name];
@@ -582,8 +596,8 @@ function renderTeams(){
         const list = cmap[c].slice().sort(byEmpId);
         const label = c===CENTER_NONE ? "근무지 미지정" : c;
         const cs = list.filter(isSubmitted).length;
-        const centerHead = `<tr class="center-row"><td colspan="6">🏢 ${escapeHtml(label)}<span class="center-count">제출 ${cs}/${list.length}</span></td></tr>`;
-        return centerHead + list.map(memberRowHtml).join("");
+        const centerHead = `<tr class="center-row"><td colspan="6"><span class="center-tag">🏢 ${escapeHtml(label)}</span><span class="center-count">제출 ${cs}/${list.length}</span></td></tr>`;
+        return centerHead + list.map(r => memberRowHtml(r, true)).join("");
       }).join("");
     }
 
