@@ -193,6 +193,17 @@
   .rowwarn{width:100%;font-size:.76rem;color:var(--warn);padding-left:2px}
   .addrow{margin-top:4px}
 
+  /* 입력 행(좌) + 합계/미리보기(우) 2단 배치 */
+  .editor-grid{display:flex;gap:22px;align-items:flex-start;margin-top:6px}
+  .editor-left{flex:1 1 auto;min-width:0}
+  .editor-right{flex:0 0 320px;position:sticky;top:82px}
+  .editor-right .calc{margin-top:0}
+  .editor-right .preview{margin-top:14px}
+  @media(max-width:860px){
+    .editor-grid{flex-direction:column}
+    .editor-right{flex:1 1 auto;width:100%;position:static}
+  }
+
   .calc{margin-top:18px;background:#fafbfd;border:1px solid var(--border);border-radius:12px;padding:16px 18px}
   .calc-line{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;padding:4px 0}
   .calc-line .lab{color:var(--muted)}
@@ -858,11 +869,15 @@ function renderEditor(){
         <h3>지정 내역 입력</h3>
         <p class="hint">통보서에 적힌 사용시기를 행 단위로 입력하세요. 연도는 ${YEAR}년 고정, 날짜는 <b>월-일</b> 형식으로 입력합니다(예: <code>7-15</code>). 범위는 시작~종료(종료 미입력 시 단일 날짜), 일수는 소수점 3자리까지(반차 0.5 · 시간연차 0.125 등). <b>Tab</b>으로 시작→종료→일수→행 추가까지 이동할 수 있습니다.</p>
         ${rawNote}
-        <div id="drows"></div>
-
-        <div class="calc" id="calcBox"></div>
-
-        <div class="preview" id="previewBox"></div>
+        <div class="editor-grid">
+          <div class="editor-left">
+            <div id="drows"></div>
+          </div>
+          <div class="editor-right">
+            <div class="calc" id="calcBox"></div>
+            <div class="preview" id="previewBox"></div>
+          </div>
+        </div>
 
         <div class="editor-actions">
           <button class="btn primary" id="saveBtn">저장</button>
