@@ -1,0 +1,1036 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>2026 연차사용촉진 제출현황</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --main:#534AB7;
+    --main-soft:#efeefb;
+    --main-deep:#3f3891;
+    --valid:#3B6D11;
+    --valid-soft:#eaf3e1;
+    --warn:#A32D2D;
+    --warn-soft:#fbeaea;
+    --border:#e2e4ea;
+    --ink:#252733;
+    --muted:#7a7e8c;
+    --bg:#f5f6f9;
+    --card:#ffffff;
+    --shadow:0 1px 3px rgba(30,33,50,.06),0 8px 24px -16px rgba(30,33,50,.25);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html,body{height:100%}
+  body{
+    font-family:'Noto Sans KR',system-ui,sans-serif;
+    color:var(--ink);background:var(--bg);
+    -webkit-font-smoothing:antialiased;line-height:1.5;font-size:14px;
+  }
+  .wrap{max-width:1120px;margin:0 auto;padding:0 20px}
+  button{font-family:inherit}
+  .hidden{display:none !important}
+
+  /* ---------- top banner (설정/에러) ---------- */
+  .banner{padding:12px 16px;border-radius:12px;margin:14px 0;font-size:.9rem;display:flex;gap:10px;align-items:flex-start}
+  .banner.warn{background:var(--warn-soft);color:var(--warn);border:1px solid #e7b9b9}
+  .banner.info{background:var(--main-soft);color:var(--main-deep);border:1px solid #cfcbef}
+  .banner code{background:rgba(0,0,0,.06);padding:1px 6px;border-radius:5px;font-size:.85em}
+
+  /* ---------- header ---------- */
+  header.top{background:var(--card);border-bottom:1px solid var(--border);position:sticky;top:0;z-index:30}
+  .top-row{display:flex;align-items:center;gap:16px;padding:16px 0 14px;flex-wrap:wrap}
+  .brand{flex:1;min-width:220px}
+  .brand h1{font-size:1.32rem;font-weight:900;letter-spacing:-.01em}
+  .brand p{font-size:.82rem;color:var(--muted);margin-top:2px}
+  .top-actions{display:flex;align-items:center;gap:10px}
+  .sync{font-size:.76rem;color:var(--muted);text-align:right;line-height:1.35}
+  .btn{cursor:pointer;border:1px solid var(--border);background:#fff;color:var(--ink);
+    border-radius:10px;padding:9px 14px;font-size:.86rem;font-weight:500;
+    display:inline-flex;align-items:center;gap:6px;transition:.15s}
+  .btn:hover{background:#f7f7fb;border-color:#d3d6df}
+  .btn.primary{background:var(--main);color:#fff;border-color:var(--main)}
+  .btn.primary:hover{background:var(--main-deep)}
+  .btn.ghost{background:transparent}
+  .btn:disabled{opacity:.5;cursor:not-allowed}
+  .btn.sm{padding:6px 11px;font-size:.8rem;border-radius:9px}
+
+  /* ---------- KPI ---------- */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;padding:6px 0 18px}
+  @media(max-width:820px){.kpis{grid-template-columns:repeat(2,1fr)}}
+  .kpi{background:var(--card);border:1px solid var(--border);border-radius:14px;padding:15px 17px;box-shadow:var(--shadow)}
+  .kpi .k{font-size:.76rem;color:var(--muted);font-weight:500}
+  .kpi .v{font-size:1.85rem;font-weight:900;margin-top:4px;letter-spacing:-.02em}
+  .kpi .v small{font-size:.9rem;font-weight:500;color:var(--muted);margin-left:2px}
+  .kpi.accent .v{color:var(--main)}
+  .kpi.warn .v{color:var(--warn)}
+  .kpi.valid .v{color:var(--valid)}
+  .dday{display:inline-flex;flex-direction:column;justify-content:center;align-items:flex-start;
+    background:var(--main);color:#fff;border-radius:14px;padding:15px 20px;min-width:120px;box-shadow:var(--shadow)}
+  .dday.urgent{background:var(--warn)}
+  .dday .lbl{font-size:.74rem;opacity:.9;font-weight:500}
+  .dday .num{font-size:1.7rem;font-weight:900;letter-spacing:-.01em}
+  .dday .date{font-size:.72rem;opacity:.85;margin-top:1px}
+
+  /* ---------- tabs ---------- */
+  .tabs{display:flex;gap:4px;border-bottom:1px solid var(--border);margin-top:6px}
+  .tab{cursor:pointer;border:0;background:transparent;padding:12px 18px;font-size:.95rem;font-weight:700;
+    color:var(--muted);border-bottom:3px solid transparent;margin-bottom:-1px;transition:.15s}
+  .tab:hover{color:var(--ink)}
+  .tab.active{color:var(--main);border-bottom-color:var(--main)}
+  .panel{padding:22px 0 60px}
+
+  /* ---------- filter bar ---------- */
+  .filterbar{display:flex;gap:14px;align-items:center;flex-wrap:wrap;margin-bottom:16px}
+  .segbtns{display:inline-flex;background:#eceef3;border-radius:11px;padding:3px}
+  .segbtns button{border:0;background:transparent;padding:7px 13px;font-size:.83rem;font-weight:600;color:var(--muted);border-radius:8px;cursor:pointer}
+  .segbtns button.active{background:#fff;color:var(--main);box-shadow:0 1px 3px rgba(0,0,0,.08)}
+  .togglelabel{display:inline-flex;align-items:center;gap:7px;font-size:.83rem;color:var(--ink);cursor:pointer;user-select:none}
+  .spacer{flex:1}
+
+  /* ---------- team accordion ---------- */
+  .team{background:var(--card);border:1px solid var(--border);border-radius:14px;margin-bottom:12px;overflow:hidden;box-shadow:var(--shadow)}
+  .team-head{width:100%;border:0;background:transparent;cursor:pointer;text-align:left;
+    display:flex;align-items:center;gap:16px;padding:15px 18px}
+  .team-head:hover{background:#fafbfd}
+  .team-name{font-weight:700;font-size:1.02rem;flex:0 0 auto}
+  .team-count{font-size:.82rem;color:var(--muted);font-weight:500}
+  .team-count b{color:var(--main);font-weight:700}
+  .prog{flex:1;min-width:80px;max-width:280px;height:8px;background:#edeef3;border-radius:99px;overflow:hidden}
+  .prog>i{display:block;height:100%;background:var(--main);border-radius:99px;transition:width .4s}
+  .prog>i.full{background:var(--valid)}
+  .team-pct{font-size:.82rem;font-weight:700;color:var(--ink);min-width:38px;text-align:right}
+  .team-chev{color:var(--muted);transition:transform .25s;flex:0 0 auto}
+  .team.open .team-chev{transform:rotate(180deg)}
+  .team-body{display:none;border-top:1px solid var(--border)}
+  .team.open .team-body{display:block}
+  .team-tools{display:flex;justify-content:flex-end;padding:10px 14px;border-bottom:1px dashed var(--border);background:#fbfbfd}
+
+  table.members{width:100%;border-collapse:collapse}
+  .members th,.members td{padding:10px 14px;text-align:left;font-size:.86rem;border-bottom:1px solid #f0f1f5}
+  .members th{font-size:.74rem;color:var(--muted);font-weight:600;background:#fafbfd}
+  .members tr:last-child td{border-bottom:0}
+  .members td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .m-name{font-weight:700}
+  .m-grade{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:3px}
+  .m-emp{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
+  .m-desig{color:var(--ink);font-size:.8rem;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .m-desig.empty{color:#b9bcc7}
+
+  .badge{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
+  .badge.sub{background:var(--main-soft);color:var(--main)}
+  .badge.nosub{background:#f0f1f5;color:#9498a5}
+  .badge.ok{background:var(--valid-soft);color:var(--valid)}
+  .badge.no{background:var(--warn-soft);color:var(--warn)}
+
+  /* ---------- non-target ---------- */
+  .nontarget{margin-top:26px}
+  .nt-head{width:100%;border:1px solid var(--border);background:#f0f1f5;color:var(--muted);cursor:pointer;
+    border-radius:12px;padding:12px 16px;font-size:.88rem;font-weight:600;display:flex;justify-content:space-between;align-items:center}
+  .nt-body{display:none;margin-top:10px}
+  .nontarget.open .nt-body{display:block}
+  .nontarget.open .nt-chev{transform:rotate(180deg)}
+  .nt-group{background:var(--card);border:1px solid var(--border);border-radius:12px;margin-bottom:10px;overflow:hidden}
+  .nt-group h4{font-size:.8rem;color:var(--muted);padding:9px 14px;background:#fafbfd;border-bottom:1px solid var(--border);font-weight:600}
+  .nt-group .names{padding:10px 14px;font-size:.84rem;color:#8a8e9b;line-height:1.9}
+
+  /* ---------- search / editor (tab2) ---------- */
+  .searchwrap{position:relative;max-width:560px;margin-bottom:20px}
+  .searchwrap input.search{width:100%;padding:13px 16px;font-size:1rem;border:1px solid var(--border);border-radius:12px;font-family:inherit;background:#fff}
+  .searchwrap input.search:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
+  .autocomplete{position:absolute;left:0;right:0;top:calc(100% + 6px);background:#fff;border:1px solid var(--border);
+    border-radius:12px;box-shadow:0 12px 30px -12px rgba(30,33,50,.35);max-height:320px;overflow:auto;z-index:20;display:none}
+  .autocomplete.show{display:block}
+  .ac-item{padding:10px 14px;cursor:pointer;display:flex;align-items:center;gap:8px;font-size:.88rem;border-bottom:1px solid #f2f3f7}
+  .ac-item:last-child{border-bottom:0}
+  .ac-item:hover,.ac-item.active{background:var(--main-soft)}
+  .ac-name{font-weight:700}
+  .ac-meta{color:var(--muted);font-size:.8rem}
+  .ac-badge{margin-left:auto;font-size:.7rem;font-weight:700;padding:2px 7px;border-radius:99px}
+  .ac-empty{padding:14px;color:var(--muted);font-size:.85rem;text-align:center}
+
+  .personcard{background:var(--card);border:1px solid var(--border);border-radius:16px;box-shadow:var(--shadow);padding:22px;margin-bottom:18px}
+  .pc-top{display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap;align-items:flex-start;border-bottom:1px solid var(--border);padding-bottom:16px;margin-bottom:16px}
+  .pc-name{font-size:1.35rem;font-weight:900}
+  .pc-name .g{font-size:.9rem;color:var(--muted);font-weight:500;margin-left:6px}
+  .pc-meta{font-size:.83rem;color:var(--muted);margin-top:5px;line-height:1.7}
+  .pc-nums{display:flex;gap:26px;text-align:right;flex-wrap:wrap}
+  .pc-num .k{font-size:.74rem;color:var(--muted);font-weight:500}
+  .pc-num .v{font-size:1.5rem;font-weight:900;font-variant-numeric:tabular-nums;letter-spacing:-.01em}
+  .pc-num.remain .v{color:var(--main)}
+
+  .editor h3{font-size:.95rem;font-weight:700;margin-bottom:4px}
+  .editor .hint{font-size:.8rem;color:var(--muted);margin-bottom:14px}
+  .rawnote{background:var(--warn-soft);color:var(--warn);border:1px solid #e7b9b9;border-radius:10px;padding:10px 14px;font-size:.82rem;margin-bottom:14px}
+  .rawnote code{background:#fff;padding:1px 6px;border-radius:5px}
+
+  .drow{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
+  .drow input[type=date]{padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;color:var(--ink);background:#fff}
+  .drow input[type=number]{width:92px;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;text-align:right}
+  .drow input:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
+  .drow .tilde{color:var(--muted);font-weight:700}
+  .drow .daysuffix{font-size:.83rem;color:var(--muted)}
+  .drow .rowdel{border:1px solid var(--border);background:#fff;color:var(--warn);border-radius:8px;width:32px;height:34px;cursor:pointer;font-size:1rem;line-height:1}
+  .drow .rowdel:hover{background:var(--warn-soft)}
+  .drow.invalid input{border-color:#e7b9b9;background:#fdf6f6}
+  .rowwarn{width:100%;font-size:.76rem;color:var(--warn);padding-left:2px}
+  .addrow{margin-top:4px}
+
+  .calc{margin-top:18px;background:#fafbfd;border:1px solid var(--border);border-radius:12px;padding:16px 18px}
+  .calc-line{display:flex;justify-content:space-between;align-items:center;font-size:.9rem;padding:4px 0}
+  .calc-line .lab{color:var(--muted)}
+  .calc-line .val{font-weight:700;font-variant-numeric:tabular-nums}
+  .calc-verdict{margin-top:10px;display:flex;align-items:center;gap:10px}
+  .verdict-badge{font-size:.95rem;font-weight:800;padding:8px 16px;border-radius:11px}
+  .verdict-badge.ok{background:var(--valid-soft);color:var(--valid)}
+  .verdict-badge.no{background:var(--warn-soft);color:var(--warn)}
+
+  .preview{margin-top:16px;font-size:.85rem;background:#fff;border:1px dashed var(--border);border-radius:11px;padding:13px 15px;line-height:1.9}
+  .preview .plab{color:var(--muted);font-weight:500}
+  .preview .pval{font-weight:700;color:var(--main-deep);font-variant-numeric:tabular-nums;word-break:break-all}
+  .preview .pval.empty{color:#b9bcc7;font-weight:400}
+
+  .editor-actions{display:flex;gap:10px;margin-top:20px;flex-wrap:wrap}
+  .editor-actions .spacer{flex:1}
+
+  .emptyhint{text-align:center;color:var(--muted);padding:60px 20px;font-size:.95rem}
+
+  /* ---------- spinner ---------- */
+  .loading{display:flex;flex-direction:column;align-items:center;gap:14px;padding:70px 20px;color:var(--muted)}
+  .spinner{width:34px;height:34px;border:3px solid var(--border);border-top-color:var(--main);border-radius:50%;animation:spin .8s linear infinite}
+  @keyframes spin{to{transform:rotate(360deg)}}
+
+  /* ---------- toast ---------- */
+  #toast{position:fixed;left:50%;bottom:30px;transform:translateX(-50%) translateY(20px);opacity:0;
+    background:var(--ink);color:#fff;padding:12px 20px;border-radius:12px;font-size:.88rem;font-weight:500;
+    box-shadow:0 12px 30px -8px rgba(0,0,0,.4);transition:.28s;z-index:100;pointer-events:none;max-width:90vw}
+  #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+  #toast.ok{background:var(--valid)}
+  #toast.err{background:var(--warn)}
+
+  @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
+</style>
+</head>
+<body>
+
+<!-- ===== 헤더 ===== -->
+<header class="top">
+  <div class="wrap">
+    <div class="top-row">
+      <div class="brand">
+        <h1>2026 연차사용촉진 제출현황</h1>
+        <p>미사용 연차유급휴가 사용시기 지정통보서 접수 · 서울관광재단 인사팀</p>
+      </div>
+      <div class="top-actions">
+        <div class="sync" id="syncInfo">—</div>
+        <button class="btn ghost" id="refreshBtn" title="전체 재동기화">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12a9 9 0 1 1-2.64-6.36"/><path d="M21 3v6h-6"/></svg>
+          새로고침
+        </button>
+      </div>
+    </div>
+  </div>
+</header>
+
+<div class="wrap">
+  <div id="configBanner" class="banner warn hidden">
+    <span>⚠️</span>
+    <span><b>SCRIPT_URL 미설정.</b> 파일 상단 <code>const SCRIPT_URL</code> 값에 Apps Script 웹앱 배포 URL을 붙여넣으세요. (README 참고)</span>
+  </div>
+
+  <!-- KPI -->
+  <div class="kpis" id="kpis"></div>
+
+  <!-- 탭 -->
+  <div class="tabs">
+    <button class="tab active" data-tab="teams">팀별 제출 현황</button>
+    <button class="tab" data-tab="search">검색 · 지정 입력</button>
+  </div>
+
+  <!-- 로딩 / 에러 -->
+  <div id="loading" class="loading">
+    <div class="spinner"></div>
+    <div>데이터를 불러오는 중…</div>
+  </div>
+  <div id="errorBox" class="banner warn hidden">
+    <span>⚠️</span>
+    <span><b>불러오기 실패.</b> <span id="errorMsg"></span> <button class="btn sm" id="retryBtn" style="margin-left:8px">다시 시도</button></span>
+  </div>
+
+  <!-- 탭1: 팀별 -->
+  <section class="panel" id="panel-teams">
+    <div class="filterbar">
+      <div class="segbtns" id="teamFilter">
+        <button data-f="all" class="active">전체</button>
+        <button data-f="nosub">미제출만</button>
+        <button data-f="sub">제출완료만</button>
+        <button data-f="mismatch">불일치만</button>
+      </div>
+      <label class="togglelabel"><input type="checkbox" id="sortToggle"> 미제출 많은 팀 우선</label>
+      <div class="spacer"></div>
+      <button class="btn sm" id="copyAllBtn" title="전체 팀 미제출자 명단 복사">📋 미제출자 명단 복사</button>
+    </div>
+    <div id="teamList"></div>
+
+    <!-- 비대상자 -->
+    <div class="nontarget" id="nonTarget">
+      <button class="nt-head" id="ntHead">
+        <span id="ntTitle">비대상자</span>
+        <span class="nt-chev" style="transition:.25s;display:inline-flex"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+      </button>
+      <div class="nt-body" id="ntBody"></div>
+    </div>
+  </section>
+
+  <!-- 탭2: 검색 -->
+  <section class="panel hidden" id="panel-search">
+    <div class="searchwrap">
+      <input type="text" class="search" id="searchInput" placeholder="성명 또는 사번으로 검색…  (예: 김지현, FT0001)" autocomplete="off">
+      <div class="autocomplete" id="autocomplete"></div>
+    </div>
+    <div id="editorHost">
+      <div class="emptyhint">위 검색창에서 직원을 선택하면 지정 내역을 입력할 수 있습니다.</div>
+    </div>
+  </section>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ==========================================================================
+ *  설정
+ * ========================================================================== */
+const SCRIPT_URL = ""; // ← 여기에 Apps Script 웹앱 배포 URL을 붙여넣으세요
+const DEADLINE   = "2026-07-20";
+const YEAR       = 2026;
+const TARGET_STATUS = "재직"; // 촉진 대상자 판정 기준
+
+/* ==========================================================================
+ *  상태
+ * ========================================================================== */
+const state = {
+  rows: [],
+  byId: {},
+  updatedAt: "",
+  teamFilter: "all",
+  sortByNosub: false,
+  openTeams: {},   // 팀명 -> 펼침 여부
+  selected: null,  // 현재 편집 중 empId
+  editorRows: [],  // [{start,end,days}]
+  rawFallback: null // 역파싱 실패 시 원문
+};
+
+/* ==========================================================================
+ *  JSONP 통신 (CORS 회피 — file:// / GitHub Pages 모두 동작)
+ * ========================================================================== */
+let jsonpSeq = 0;
+function jsonp(params){
+  return new Promise((resolve, reject)=>{
+    if(!SCRIPT_URL){ reject(new Error("SCRIPT_URL 미설정")); return; }
+    const cb = "__jsonp_cb_" + (jsonpSeq++);
+    const script = document.createElement("script");
+    const timer = setTimeout(()=>{ cleanup(); reject(new Error("요청 시간 초과(20초)")); }, 20000);
+    function cleanup(){
+      try{ delete window[cb]; }catch(e){ window[cb] = undefined; }
+      if(script.parentNode) script.parentNode.removeChild(script);
+      clearTimeout(timer);
+    }
+    window[cb] = function(data){ cleanup(); resolve(data); };
+    const qs = Object.keys(params)
+      .map(k => encodeURIComponent(k) + "=" + encodeURIComponent(params[k]))
+      .join("&");
+    script.src = SCRIPT_URL + "?" + qs + (qs ? "&" : "") + "callback=" + cb;
+    script.onerror = function(){ cleanup(); reject(new Error("네트워크 오류 (URL·배포 상태 확인)")); };
+    document.head.appendChild(script);
+  });
+}
+
+/* ==========================================================================
+ *  숫자 · 날짜 · 표기 유틸
+ * ========================================================================== */
+// 부동소수점 방지: 일수 × 1000 정수화
+function milli(n){ return Math.round(Number(n) * 1000); }
+function fromMilli(m){ return m / 1000; }
+
+// 일수 표기: 불필요한 뒤 0 제거 (3 → "3", 2.5 → "2.5", 0.375 → "0.375")
+function fmtDays(n){
+  const r = Math.round(Number(n) * 1000) / 1000;
+  let s = r.toFixed(3);
+  s = s.replace(/\.?0+$/, "");
+  return s === "" || s === "-0" ? "0" : s;
+}
+// 잔여 등 일반 숫자 표기(소수점 3자리까지, 뒤 0 제거)
+function fmtNum(n){
+  if(n === "" || n == null || isNaN(Number(n))) return "-";
+  return fmtDays(n);
+}
+
+// 'YYYY-MM-DD' → {m,d}
+function mmdd(dateStr){
+  const p = String(dateStr).split("-");
+  return { m: parseInt(p[1],10), d: parseInt(p[2],10) };
+}
+function pad2(n){ return (n<10?"0":"") + n; }
+
+// 한 건 표기 조립
+function formatEntry(start, end, days){
+  const s = mmdd(start);
+  const ds = fmtDays(days);
+  if(!end || end === start){
+    return s.m + "/" + s.d + "(" + ds + "일)";
+  }
+  const e = mmdd(end);
+  if(e.m === s.m){
+    return s.m + "/" + s.d + "~" + e.d + "(" + ds + "일)";
+  }
+  return s.m + "/" + s.d + "~" + e.m + "/" + e.d + "(" + ds + "일)";
+}
+
+// 편집 행 배열 → 저장 문자열
+function buildDesignated(rows){
+  return rows.filter(isRowValid)
+             .map(r => formatEntry(r.start, r.end, r.days))
+             .join(", ");
+}
+
+// 저장 문자열 → 편집 행 배열 (역파싱). 실패 시 null
+const RE_CROSS = /^(\d{1,2})\/(\d{1,2})~(\d{1,2})\/(\d{1,2})\((\d+(?:\.\d+)?)일\)$/;
+const RE_SAME  = /^(\d{1,2})\/(\d{1,2})~(\d{1,2})\((\d+(?:\.\d+)?)일\)$/;
+const RE_ONE   = /^(\d{1,2})\/(\d{1,2})\((\d+(?:\.\d+)?)일\)$/;
+function parseDesignated(str){
+  const t = String(str || "").trim();
+  if(t === "") return [];
+  const tokens = t.split(/,\s*/).map(x => x.trim()).filter(Boolean);
+  const out = [];
+  for(const tok of tokens){
+    let m;
+    if((m = tok.match(RE_CROSS))){
+      out.push({ start: `${YEAR}-${pad2(+m[1])}-${pad2(+m[2])}`, end: `${YEAR}-${pad2(+m[3])}-${pad2(+m[4])}`, days: parseFloat(m[5]) });
+    }else if((m = tok.match(RE_SAME))){
+      out.push({ start: `${YEAR}-${pad2(+m[1])}-${pad2(+m[2])}`, end: `${YEAR}-${pad2(+m[1])}-${pad2(+m[3])}`, days: parseFloat(m[4]) });
+    }else if((m = tok.match(RE_ONE))){
+      out.push({ start: `${YEAR}-${pad2(+m[1])}-${pad2(+m[2])}`, end: "", days: parseFloat(m[3]) });
+    }else{
+      return null; // 한 토큰이라도 실패하면 전체 실패
+    }
+  }
+  return out;
+}
+
+function isRowValid(r){
+  if(!r.start) return false;
+  if(!(Number(r.days) > 0)) return false;
+  if(r.end && r.end < r.start) return false;
+  return true;
+}
+
+/* ==========================================================================
+ *  집계 헬퍼
+ * ========================================================================== */
+function isTarget(row){ return row.status === TARGET_STATUS; }
+function isSubmitted(row){ return String(row.designated || "").trim() !== ""; }
+
+function computeKpi(){
+  const targets = state.rows.filter(isTarget);
+  const submitted = targets.filter(isSubmitted);
+  const total = targets.length;
+  const sub = submitted.length;
+  const nosub = total - sub;
+  const rate = total ? Math.round(sub / total * 1000) / 10 : 0;
+  return { total, sub, nosub, rate };
+}
+
+function ddayInfo(){
+  const today = new Date(); today.setHours(0,0,0,0);
+  const p = DEADLINE.split("-");
+  const dl = new Date(+p[0], +p[1]-1, +p[2]);
+  const diff = Math.round((dl - today) / 86400000);
+  let label;
+  if(diff > 0) label = "D-" + diff;
+  else if(diff === 0) label = "D-DAY";
+  else label = "D+" + Math.abs(diff);
+  return { diff, label };
+}
+
+/* ==========================================================================
+ *  렌더링 — KPI
+ * ========================================================================== */
+function renderKpi(){
+  const k = computeKpi();
+  const d = ddayInfo();
+  const urgent = d.diff <= 7;
+  document.getElementById("kpis").innerHTML = `
+    <div class="kpi accent"><div class="k">대상자 수</div><div class="v">${k.total}<small>명</small></div></div>
+    <div class="kpi valid"><div class="k">제출완료</div><div class="v">${k.sub}<small>명</small></div></div>
+    <div class="kpi warn"><div class="k">미제출</div><div class="v">${k.nosub}<small>명</small></div></div>
+    <div class="kpi" style="display:flex;justify-content:space-between;align-items:center">
+      <div><div class="k">제출률</div><div class="v">${k.rate}<small>%</small></div></div>
+      <div class="dday ${urgent?'urgent':''}"><span class="lbl">제출 마감</span><span class="num">${d.label}</span><span class="date">${DEADLINE}</span></div>
+    </div>`;
+}
+
+/* ==========================================================================
+ *  렌더링 — 탭1 팀별
+ * ========================================================================== */
+function memberMatchesFilter(row){
+  const f = state.teamFilter;
+  if(f === "all") return true;
+  if(f === "sub") return isSubmitted(row);
+  if(f === "nosub") return !isSubmitted(row);
+  if(f === "mismatch") return isSubmitted(row) && row.result === "불일치";
+  return true;
+}
+
+function groupTargetsByTeam(){
+  const map = {};
+  for(const row of state.rows){
+    if(!isTarget(row)) continue;
+    const t = row.team || "(소속 미상)";
+    (map[t] = map[t] || []).push(row);
+  }
+  return map;
+}
+
+function renderTeams(){
+  const host = document.getElementById("teamList");
+  const groups = groupTargetsByTeam();
+  let teamNames = Object.keys(groups);
+
+  // 정렬: 기본 이름순, 옵션 시 미제출 많은 순
+  if(state.sortByNosub){
+    teamNames.sort((a,b)=>{
+      const na = groups[a].filter(r=>!isSubmitted(r)).length;
+      const nb = groups[b].filter(r=>!isSubmitted(r)).length;
+      return nb - na || a.localeCompare(b, "ko");
+    });
+  }else{
+    teamNames.sort((a,b)=>a.localeCompare(b, "ko"));
+  }
+
+  let html = "";
+  let shownTeams = 0;
+  for(const name of teamNames){
+    const members = groups[name];
+    const total = members.length;
+    const sub = members.filter(isSubmitted).length;
+    const pct = total ? Math.round(sub/total*100) : 0;
+    const visible = members.filter(memberMatchesFilter);
+    if(visible.length === 0) continue; // 필터에 걸리는 팀원 없으면 팀 숨김
+    shownTeams++;
+    const open = state.openTeams[name];
+
+    // 팀원 정렬: 미제출 먼저, 그다음 이름
+    visible.sort((a,b)=>{
+      const sa = isSubmitted(a)?1:0, sb = isSubmitted(b)?1:0;
+      return sa - sb || a.name.localeCompare(b.name, "ko");
+    });
+
+    const rowsHtml = visible.map(r=>{
+      const subBadge = isSubmitted(r)
+        ? `<span class="badge sub">✓ 제출</span>`
+        : `<span class="badge nosub">− 미제출</span>`;
+      let resBadge = "";
+      if(isSubmitted(r) && r.result){
+        resBadge = r.result === "일치"
+          ? `<span class="badge ok">일치</span>`
+          : `<span class="badge no">불일치</span>`;
+      }
+      const desig = isSubmitted(r)
+        ? `<span class="m-desig" title="${escapeAttr(r.designated)}">${escapeHtml(r.designated)}</span>`
+        : `<span class="m-desig empty">—</span>`;
+      return `<tr>
+        <td><span class="m-name">${escapeHtml(r.name)}</span><span class="m-grade">${escapeHtml(r.grade)}</span></td>
+        <td class="m-emp">${escapeHtml(r.empId)}</td>
+        <td class="num">${fmtNum(r.remaining)}</td>
+        <td>${subBadge} ${resBadge}</td>
+        <td>${desig}</td>
+        <td class="num"><button class="btn sm" onclick="goEdit('${escapeAttr(r.empId)}')">${isSubmitted(r)?'수정':'입력'}</button></td>
+      </tr>`;
+    }).join("");
+
+    html += `
+      <div class="team ${open?'open':''}" data-team="${escapeAttr(name)}">
+        <button class="team-head" onclick="toggleTeam('${escapeAttr(name)}')">
+          <span class="team-name">${escapeHtml(name)}</span>
+          <span class="team-count">제출 <b>${sub}</b> / 대상 ${total}</span>
+          <span class="prog"><i class="${pct===100?'full':''}" style="width:${pct}%"></i></span>
+          <span class="team-pct">${pct}%</span>
+          <span class="team-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
+        </button>
+        <div class="team-body">
+          <div class="team-tools">
+            <button class="btn sm" onclick="copyTeamNosub('${escapeAttr(name)}')">📋 이 팀 미제출자 복사</button>
+          </div>
+          <table class="members">
+            <thead><tr><th>성명(직급)</th><th>사번</th><th>잔여</th><th>제출 · 결과</th><th>지정 내역</th><th></th></tr></thead>
+            <tbody>${rowsHtml}</tbody>
+          </table>
+        </div>
+      </div>`;
+  }
+
+  host.innerHTML = shownTeams
+    ? html
+    : `<div class="emptyhint">해당 조건에 맞는 대상자가 없습니다.</div>`;
+
+  renderNonTarget();
+}
+
+function renderNonTarget(){
+  const nt = state.rows.filter(r=>!isTarget(r));
+  const box = document.getElementById("nonTarget");
+  const body = document.getElementById("ntBody");
+  document.getElementById("ntTitle").textContent = `비대상자 ${nt.length}명 (카운트 미포함 · 참고용)`;
+  if(nt.length === 0){ box.classList.add("hidden"); return; }
+  box.classList.remove("hidden");
+
+  const byReason = {};
+  for(const r of nt){
+    const reason = r.status || "기타";
+    (byReason[reason] = byReason[reason] || []).push(r);
+  }
+  body.innerHTML = Object.keys(byReason).sort((a,b)=>a.localeCompare(b,"ko")).map(reason=>{
+    const list = byReason[reason];
+    const names = list.map(r=>`${escapeHtml(r.name)}<span style="opacity:.6">(${escapeHtml(r.team)})</span>`).join(" · ");
+    return `<div class="nt-group"><h4>${escapeHtml(reason)} · ${list.length}명</h4><div class="names">${names}</div></div>`;
+  }).join("");
+}
+
+/* ==========================================================================
+ *  미제출자 명단 복사
+ * ========================================================================== */
+function nosubTextForTeam(name, members){
+  const nosub = members.filter(r=>!isSubmitted(r)).map(r=>r.name);
+  if(nosub.length === 0) return null;
+  return `${name}: ${nosub.join(", ")}`;
+}
+function copyTeamNosub(name){
+  const groups = groupTargetsByTeam();
+  const line = nosubTextForTeam(name, groups[name] || []);
+  if(!line){ toast("이 팀은 미제출자가 없습니다.", "ok"); return; }
+  copyText(line);
+}
+function copyAllNosub(){
+  const groups = groupTargetsByTeam();
+  const lines = Object.keys(groups).sort((a,b)=>a.localeCompare(b,"ko"))
+    .map(n => nosubTextForTeam(n, groups[n]))
+    .filter(Boolean);
+  if(lines.length === 0){ toast("전체 대상자가 모두 제출했습니다. 🎉", "ok"); return; }
+  copyText(lines.join("\n"));
+}
+function copyText(text){
+  const done = ()=> toast("클립보드에 복사했습니다.", "ok");
+  if(navigator.clipboard && navigator.clipboard.writeText){
+    navigator.clipboard.writeText(text).then(done, ()=>fallbackCopy(text, done));
+  }else fallbackCopy(text, done);
+}
+function fallbackCopy(text, done){
+  const ta = document.createElement("textarea");
+  ta.value = text; ta.style.position="fixed"; ta.style.opacity="0";
+  document.body.appendChild(ta); ta.select();
+  try{ document.execCommand("copy"); done(); }catch(e){ toast("복사 실패 — 수동 복사 필요","err"); }
+  document.body.removeChild(ta);
+}
+
+/* ==========================================================================
+ *  탭2 — 검색
+ * ========================================================================== */
+function setupSearch(){
+  const input = document.getElementById("searchInput");
+  const ac = document.getElementById("autocomplete");
+  let activeIdx = -1;
+  let matches = [];
+
+  function refresh(){
+    const q = input.value.trim().toLowerCase();
+    if(q === ""){ ac.classList.remove("show"); return; }
+    matches = state.rows.filter(r =>
+      r.name.toLowerCase().includes(q) || r.empId.toLowerCase().includes(q)
+    ).slice(0, 30);
+    activeIdx = -1;
+    if(matches.length === 0){
+      ac.innerHTML = `<div class="ac-empty">검색 결과가 없습니다.</div>`;
+      ac.classList.add("show"); return;
+    }
+    ac.innerHTML = matches.map((r,i)=>{
+      const badge = isSubmitted(r)
+        ? `<span class="ac-badge" style="background:var(--main-soft);color:var(--main)">제출</span>`
+        : `<span class="ac-badge" style="background:#f0f1f5;color:#9498a5">미제출</span>`;
+      const tgt = isTarget(r) ? "" : `<span class="ac-meta" style="color:var(--warn)"> · ${escapeHtml(r.status)}</span>`;
+      return `<div class="ac-item" data-idx="${i}">
+        <span class="ac-name">${escapeHtml(r.name)}</span>
+        <span class="ac-meta">· ${escapeHtml(r.empId)} · ${escapeHtml(r.team)}${tgt}</span>
+        ${badge}</div>`;
+    }).join("");
+    ac.classList.add("show");
+    ac.querySelectorAll(".ac-item").forEach(el=>{
+      el.addEventListener("mousedown", (e)=>{ // mousedown: blur보다 먼저
+        e.preventDefault();
+        selectPerson(matches[+el.dataset.idx].empId);
+        ac.classList.remove("show");
+      });
+    });
+  }
+  function move(dir){
+    const items = ac.querySelectorAll(".ac-item");
+    if(!items.length) return;
+    activeIdx = (activeIdx + dir + items.length) % items.length;
+    items.forEach((el,i)=>el.classList.toggle("active", i===activeIdx));
+    items[activeIdx].scrollIntoView({block:"nearest"});
+  }
+  input.addEventListener("input", refresh);
+  input.addEventListener("focus", refresh);
+  input.addEventListener("keydown", (e)=>{
+    if(!ac.classList.contains("show")) return;
+    if(e.key === "ArrowDown"){ e.preventDefault(); move(1); }
+    else if(e.key === "ArrowUp"){ e.preventDefault(); move(-1); }
+    else if(e.key === "Enter"){
+      e.preventDefault();
+      if(activeIdx >= 0 && matches[activeIdx]){ selectPerson(matches[activeIdx].empId); ac.classList.remove("show"); }
+      else if(matches.length === 1){ selectPerson(matches[0].empId); ac.classList.remove("show"); }
+    }else if(e.key === "Escape"){ ac.classList.remove("show"); }
+  });
+  document.addEventListener("click", (e)=>{
+    if(!e.target.closest(".searchwrap")) ac.classList.remove("show");
+  });
+}
+
+/* ==========================================================================
+ *  탭2 — 인원 선택 & 에디터
+ * ========================================================================== */
+function goEdit(empId){
+  switchTab("search");
+  selectPerson(empId);
+  window.scrollTo({top:0, behavior:"smooth"});
+}
+
+function selectPerson(empId){
+  const row = state.byId[empId];
+  if(!row) return;
+  state.selected = empId;
+  document.getElementById("searchInput").value = `${row.name} · ${row.empId}`;
+  document.getElementById("autocomplete").classList.remove("show");
+
+  // 기존 지정 역파싱
+  state.rawFallback = null;
+  if(isSubmitted(row)){
+    const parsed = parseDesignated(row.designated);
+    if(parsed === null){
+      state.rawFallback = row.designated;
+      state.editorRows = [ blankRow() ];
+    }else{
+      state.editorRows = parsed.length ? parsed : [ blankRow() ];
+    }
+  }else{
+    state.editorRows = [ blankRow() ];
+  }
+  renderEditor();
+}
+
+function blankRow(){ return { start:"", end:"", days:"" }; }
+
+function renderEditor(){
+  const row = state.byId[state.selected];
+  const host = document.getElementById("editorHost");
+  if(!row){ host.innerHTML = `<div class="emptyhint">직원을 선택하세요.</div>`; return; }
+
+  const submitted = isSubmitted(row);
+  const notTarget = !isTarget(row)
+    ? `<div class="banner info" style="margin:0 0 16px"><span>ℹ️</span><span>이 직원은 <b>${escapeHtml(row.status)}</b> 상태(촉진 비대상)입니다. 필요 시 입력은 가능합니다.</span></div>`
+    : "";
+
+  const rawNote = state.rawFallback
+    ? `<div class="rawnote">⚠️ 기존 <b>지정</b> 값을 자동 역파싱하지 못했습니다(수기 수정 등). 원문: <code>${escapeHtml(state.rawFallback)}</code><br>아래에서 <b>새로 입력</b>해 주세요.</div>`
+    : "";
+
+  host.innerHTML = `
+    <div class="personcard">
+      <div class="pc-top">
+        <div>
+          <div class="pc-name">${escapeHtml(row.name)}<span class="g">${escapeHtml(row.grade)}</span></div>
+          <div class="pc-meta">사번 ${escapeHtml(row.empId)} · ${escapeHtml(row.team)}<br>입사일 ${escapeHtml(row.hireDate || "-")}</div>
+        </div>
+        <div class="pc-nums">
+          <div class="pc-num"><div class="k">발생연차</div><div class="v">${fmtNum(row.granted)}</div></div>
+          <div class="pc-num"><div class="k">사용연차</div><div class="v">${fmtNum(row.used)}</div></div>
+          <div class="pc-num remain"><div class="k">미사용(잔여)</div><div class="v">${fmtNum(row.remaining)}</div></div>
+        </div>
+      </div>
+
+      <div class="editor">
+        ${notTarget}
+        <h3>지정 내역 입력</h3>
+        <p class="hint">통보서에 적힌 사용시기를 행 단위로 입력하세요. 날짜 범위는 시작·종료 두 칸(종료 미입력 시 단일 날짜), 일수는 소수점 3자리까지(반차 0.5 · 시간연차 0.125 등).</p>
+        ${rawNote}
+        <div id="drows"></div>
+        <button class="btn sm addrow" id="addRowBtn">＋ 행 추가</button>
+
+        <div class="calc" id="calcBox"></div>
+
+        <div class="preview" id="previewBox"></div>
+
+        <div class="editor-actions">
+          <button class="btn primary" id="saveBtn">저장</button>
+          ${submitted ? `<button class="btn ghost" id="clearBtn" style="color:var(--warn)">제출 취소</button>` : ""}
+          <div class="spacer"></div>
+        </div>
+      </div>
+    </div>`;
+
+  renderDrows();
+  document.getElementById("addRowBtn").addEventListener("click", ()=>{
+    state.editorRows.push(blankRow()); renderDrows(); recalc();
+  });
+  document.getElementById("saveBtn").addEventListener("click", doSave);
+  const clearBtn = document.getElementById("clearBtn");
+  if(clearBtn) clearBtn.addEventListener("click", doClear);
+  recalc();
+}
+
+function renderDrows(){
+  const host = document.getElementById("drows");
+  host.innerHTML = state.editorRows.map((r,i)=>{
+    const invalid = (r.start || r.end || r.days!=="") && !isRowValid(r);
+    let warn = "";
+    if(invalid){
+      if(!r.start) warn = "시작 날짜를 입력하세요.";
+      else if(r.end && r.end < r.start) warn = "종료일이 시작일보다 빠릅니다.";
+      else if(!(Number(r.days)>0)) warn = "일수는 0보다 커야 합니다.";
+    }
+    return `<div class="drow ${invalid?'invalid':''}" data-i="${i}">
+      <input type="date" class="d-start" value="${r.start||''}">
+      <span class="tilde">~</span>
+      <input type="date" class="d-end" value="${r.end||''}" title="종료일(선택)">
+      <input type="number" class="d-days" step="0.001" min="0" placeholder="일수" value="${r.days===''?'':r.days}">
+      <span class="daysuffix">일</span>
+      <button class="rowdel" title="행 삭제">×</button>
+      ${warn?`<div class="rowwarn">⚠ ${warn}</div>`:""}
+    </div>`;
+  }).join("");
+
+  host.querySelectorAll(".drow").forEach(el=>{
+    const i = +el.dataset.i;
+    el.querySelector(".d-start").addEventListener("change", e=>{ state.editorRows[i].start = e.target.value; softRerenderRows(); recalc(); });
+    el.querySelector(".d-end").addEventListener("change", e=>{ state.editorRows[i].end = e.target.value; softRerenderRows(); recalc(); });
+    el.querySelector(".d-days").addEventListener("input", e=>{ state.editorRows[i].days = e.target.value; recalc(); });
+    el.querySelector(".d-days").addEventListener("change", ()=>{ softRerenderRows(); recalc(); });
+    el.querySelector(".rowdel").addEventListener("click", ()=>{
+      state.editorRows.splice(i,1);
+      if(state.editorRows.length===0) state.editorRows.push(blankRow());
+      renderDrows(); recalc();
+    });
+  });
+}
+// 유효성 표시만 갱신(포커스 잃은 뒤)
+function softRerenderRows(){ renderDrows(); }
+
+function recalc(){
+  const row = state.byId[state.selected];
+  if(!row) return;
+  const remMilli = milli(row.remaining || 0);
+  const validRows = state.editorRows.filter(isRowValid);
+  const sumMilli = validRows.reduce((a,r)=>a + milli(r.days), 0);
+  const diffMilli = remMilli - sumMilli;
+  const match = diffMilli === 0;
+
+  // 같은 날짜(시작) 중복 경고
+  const startCounts = {};
+  validRows.forEach(r=>{ startCounts[r.start] = (startCounts[r.start]||0)+1; });
+  const dupDates = Object.keys(startCounts).filter(d=>startCounts[d]>1);
+
+  let diffText;
+  if(match) diffText = "0";
+  else if(diffMilli > 0) diffText = `${fmtDays(fromMilli(diffMilli))}일 부족`;
+  else diffText = `${fmtDays(fromMilli(-diffMilli))}일 초과`;
+
+  const calc = document.getElementById("calcBox");
+  calc.innerHTML = `
+    <div class="calc-line"><span class="lab">미사용연차(잔여)</span><span class="val">${fmtNum(row.remaining)}일</span></div>
+    <div class="calc-line"><span class="lab">입력 일수 합계</span><span class="val">${fmtDays(fromMilli(sumMilli))}일</span></div>
+    <div class="calc-line" style="border-top:1px dashed var(--border);margin-top:4px;padding-top:8px">
+      <span class="lab">차이 (잔여 − 합계)</span>
+      <span class="val" style="color:${match?'var(--valid)':'var(--warn)'}">${match?'0':(diffMilli>0?'+':'−')+fmtDays(fromMilli(Math.abs(diffMilli)))}일</span></div>
+    <div class="calc-verdict">
+      ${match
+        ? `<span class="verdict-badge ok">✓ 일치</span>`
+        : `<span class="verdict-badge no">불일치 · ${diffText}</span>`}
+      ${dupDates.length ? `<span style="font-size:.78rem;color:var(--warn)">⚠ 같은 시작일 중복: ${dupDates.map(escapeHtml).join(", ")}</span>` : ""}
+    </div>`;
+
+  const preview = buildDesignated(state.editorRows);
+  const pv = document.getElementById("previewBox");
+  pv.innerHTML = `
+    <div><span class="plab">지정 칼럼에 저장될 값 →</span> <span class="pval ${preview?'':'empty'}">${preview?escapeHtml(preview):'(입력 없음)'}</span></div>
+    <div><span class="plab">결과 칼럼에 기록될 값 →</span> <span class="pval" style="color:${match?'var(--valid)':'var(--warn)'}">${match?'일치':'불일치'}</span></div>`;
+
+  // 검증 결과 캐시(저장 시 사용)
+  state._calc = { match, diffText, preview };
+}
+
+/* ==========================================================================
+ *  저장 / 취소
+ * ========================================================================== */
+async function doSave(){
+  const row = state.byId[state.selected];
+  if(!row) return;
+  recalc();
+  const { match, diffText, preview } = state._calc;
+
+  // 유효하지 않은(입력 진행 중) 행이 섞여있으면 경고
+  const hasInvalid = state.editorRows.some(r => (r.start||r.end||r.days!=="") && !isRowValid(r));
+  if(hasInvalid){
+    if(!confirm("입력이 완성되지 않은 행이 있어 제외하고 저장합니다. 계속할까요?")) return;
+  }
+  if(preview === ""){
+    if(!confirm("입력된 지정 내역이 없습니다. 빈 값으로 저장하면 미제출로 표시됩니다. 계속할까요?")) return;
+  }
+  if(!match){
+    if(!confirm(`${diffText} 상태로 저장합니다. (결과 칼럼에 '불일치'로 기록됩니다)\n계속할까요?`)) return;
+  }
+
+  const result = match ? "일치" : "불일치";
+  const saveBtn = document.getElementById("saveBtn");
+  saveBtn.disabled = true; saveBtn.textContent = "저장 중…";
+  try{
+    const res = await jsonp({ action:"submit", empId: row.empId, designated: preview, result: result });
+    if(!res || !res.ok) throw new Error(res && res.error ? res.error : "저장 실패");
+    // 로컬 갱신(응답 기반)
+    row.designated = res.designated != null ? res.designated : preview;
+    row.result = res.result != null ? res.result : result;
+    state.byId[row.empId] = row;
+    toast(`저장 완료 · ${row.name} (${result})`, "ok");
+    renderKpi(); renderTeams(); renderEditor();
+  }catch(err){
+    toast("저장 실패: " + err.message, "err");
+  }finally{
+    if(document.getElementById("saveBtn")){
+      saveBtn.disabled = false; saveBtn.textContent = "저장";
+    }
+  }
+}
+
+async function doClear(){
+  const row = state.byId[state.selected];
+  if(!row) return;
+  if(!confirm(`${row.name} 님의 지정·결과를 비워 '미제출' 상태로 되돌립니다. 계속할까요?`)) return;
+  const btn = document.getElementById("clearBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "처리 중…"; }
+  try{
+    const res = await jsonp({ action:"clear", empId: row.empId });
+    if(!res || !res.ok) throw new Error(res && res.error ? res.error : "취소 실패");
+    row.designated = ""; row.result = "";
+    state.byId[row.empId] = row;
+    state.editorRows = [ blankRow() ];
+    state.rawFallback = null;
+    toast(`제출 취소 완료 · ${row.name}`, "ok");
+    renderKpi(); renderTeams(); renderEditor();
+  }catch(err){
+    toast("취소 실패: " + err.message, "err");
+    if(btn){ btn.disabled = false; btn.textContent = "제출 취소"; }
+  }
+}
+
+/* ==========================================================================
+ *  탭 전환
+ * ========================================================================== */
+function switchTab(tab){
+  document.querySelectorAll(".tab").forEach(t=>t.classList.toggle("active", t.dataset.tab===tab));
+  document.getElementById("panel-teams").classList.toggle("hidden", tab!=="teams");
+  document.getElementById("panel-search").classList.toggle("hidden", tab!=="search");
+  if(tab==="search") setTimeout(()=>document.getElementById("searchInput").focus(), 50);
+}
+
+function toggleTeam(name){
+  state.openTeams[name] = !state.openTeams[name];
+  renderTeams();
+}
+
+/* ==========================================================================
+ *  데이터 로드
+ * ========================================================================== */
+async function loadData(){
+  document.getElementById("loading").classList.remove("hidden");
+  document.getElementById("errorBox").classList.add("hidden");
+  document.getElementById("panel-teams").classList.add("hidden");
+  document.getElementById("panel-search").classList.add("hidden");
+  try{
+    const res = await jsonp({ action:"data" });
+    if(!res || !res.ok) throw new Error(res && res.error ? res.error : "응답 오류");
+    state.rows = res.rows || [];
+    state.byId = {};
+    state.rows.forEach(r=> state.byId[r.empId] = r);
+    state.updatedAt = res.updatedAt || "";
+    document.getElementById("syncInfo").innerHTML = `마지막 동기화<br>${escapeHtml(state.updatedAt)}`;
+    document.getElementById("loading").classList.add("hidden");
+    // 현재 탭 복원
+    const active = document.querySelector(".tab.active").dataset.tab;
+    document.getElementById("panel-teams").classList.toggle("hidden", active!=="teams");
+    document.getElementById("panel-search").classList.toggle("hidden", active!=="search");
+    renderKpi(); renderTeams();
+    if(state.selected && state.byId[state.selected]) renderEditor();
+  }catch(err){
+    document.getElementById("loading").classList.add("hidden");
+    document.getElementById("errorBox").classList.remove("hidden");
+    document.getElementById("errorMsg").textContent = err.message;
+  }
+}
+
+/* ==========================================================================
+ *  유틸 — 토스트 / escape
+ * ========================================================================== */
+let toastTimer;
+function toast(msg, type){
+  const el = document.getElementById("toast");
+  el.textContent = msg;
+  el.className = "show" + (type?(" "+type):"");
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=> el.className = el.className.replace("show","").trim(), 2600);
+}
+function escapeHtml(s){
+  return String(s==null?"":s).replace(/[&<>"']/g, c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+}
+function escapeAttr(s){ return escapeHtml(s).replace(/'/g,"&#39;"); }
+
+/* ==========================================================================
+ *  초기화
+ * ========================================================================== */
+function init(){
+  if(!SCRIPT_URL){
+    document.getElementById("configBanner").classList.remove("hidden");
+    document.getElementById("loading").classList.add("hidden");
+  }
+  // 탭
+  document.querySelectorAll(".tab").forEach(t=>t.addEventListener("click", ()=>switchTab(t.dataset.tab)));
+  // 필터
+  document.getElementById("teamFilter").querySelectorAll("button").forEach(b=>{
+    b.addEventListener("click", ()=>{
+      document.getElementById("teamFilter").querySelectorAll("button").forEach(x=>x.classList.remove("active"));
+      b.classList.add("active");
+      state.teamFilter = b.dataset.f;
+      renderTeams();
+    });
+  });
+  document.getElementById("sortToggle").addEventListener("change", e=>{
+    state.sortByNosub = e.target.checked; renderTeams();
+  });
+  // 비대상자 토글
+  document.getElementById("ntHead").addEventListener("click", ()=>{
+    document.getElementById("nonTarget").classList.toggle("open");
+  });
+  // 복사
+  document.getElementById("copyAllBtn").addEventListener("click", copyAllNosub);
+  // 새로고침 / 재시도
+  document.getElementById("refreshBtn").addEventListener("click", loadData);
+  document.getElementById("retryBtn").addEventListener("click", loadData);
+  // 검색
+  setupSearch();
+
+  if(SCRIPT_URL) loadData();
+}
+document.addEventListener("DOMContentLoaded", init);
+</script>
+</body>
+</html>
