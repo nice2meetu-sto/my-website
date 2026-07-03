@@ -121,6 +121,7 @@
   .members tr.in-center td.mcol-name{padding-left:32px;position:relative}
   .members tr.in-center td.mcol-name::before{content:"";position:absolute;left:16px;top:0;bottom:0;width:2px;background:#e4e2f4}
   .members td.num{text-align:right;font-variant-numeric:tabular-nums;white-space:nowrap}
+  .members td.remain,.members th.remain{text-align:center}
   .m-name{font-weight:700}
   .m-grade{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:3px}
   .m-emp{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
@@ -559,7 +560,7 @@ function memberRowHtml(r, inCenter){
   return `<tr class="${inCenter?'in-center':''}">
     <td class="mcol-name"><span class="m-name">${escapeHtml(r.name)}</span><span class="m-grade">${escapeHtml(r.grade)}</span></td>
     <td class="m-emp">${escapeHtml(r.empId)}</td>
-    <td class="num">${fmtNum(r.remaining)}</td>
+    <td class="num remain">${fmtNum(r.remaining)}</td>
     <td>${subBadge} ${resBadge}</td>
     <td>${desig}</td>
     <td class="num"><button class="btn sm" onclick="goEdit('${escapeAttr(r.empId)}')">${isSubmitted(r)?'수정':'입력'}</button></td>
@@ -657,7 +658,7 @@ function renderTeams(){
         </button>
         <div class="team-body">
           <table class="members">
-            <thead><tr><th>성명(직급)</th><th>사번</th><th>잔여</th><th>제출 · 결과</th><th>지정 내역</th><th></th></tr></thead>
+            <thead><tr><th>성명(직급)</th><th>사번</th><th class="remain">잔여</th><th>제출 · 결과</th><th>지정 내역</th><th></th></tr></thead>
             <tbody>${rowsHtml}</tbody>
           </table>
         </div>
