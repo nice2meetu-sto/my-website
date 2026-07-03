@@ -1155,9 +1155,19 @@ function init(){
   document.getElementById("sortToggle").addEventListener("change", e=>{
     state.sortByNosub = e.target.checked; renderTeams();
   });
-  // 팀 검색
+  // 팀 검색 (검색어와 일치하는 팀은 자동으로 펼침)
   document.getElementById("teamSearch").addEventListener("input", e=>{
-    state.teamQuery = e.target.value; renderTeams();
+    state.teamQuery = e.target.value;
+    const tq = state.teamQuery.trim().toLowerCase();
+    if(tq){
+      const groups = groupTargetsByTeam();
+      Object.keys(groups).forEach(n=>{
+        const hit = n.toLowerCase().includes(tq)
+          || groups[n].some(r => (r.worksite || "").toLowerCase().includes(tq));
+        if(hit) state.openTeams[n] = true;
+      });
+    }
+    renderTeams();
   });
   // 비대상자 토글
   document.getElementById("ntHead").addEventListener("click", ()=>{
