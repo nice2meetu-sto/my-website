@@ -175,19 +175,19 @@
   .rawnote code{background:#fff;padding:1px 6px;border-radius:5px}
 
   .drow{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
-  .drow .ymd{display:inline-flex;align-items:center;gap:1px;border:1px solid var(--border);border-radius:9px;padding:6px 10px;background:#fff}
-  .drow .ymd:focus-within{border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
-  .drow .yfix{color:var(--muted);font-size:.82rem;margin-right:3px}
-  .drow .dseg{width:26px;border:0;outline:none;background:transparent;font-family:inherit;font-size:.86rem;text-align:center;color:var(--ink);-moz-appearance:textfield}
-  .drow .dseg::placeholder{color:#c3c6d0}
-  .drow .dot{color:var(--muted)}
+  .drow .dfield{width:110px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;color:var(--ink);background:#fff;letter-spacing:.02em}
+  .drow .dfield::placeholder{color:#c3c6d0;letter-spacing:normal}
+  .drow .dfield:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
   .drow input[type=number]{width:92px;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;text-align:right}
   .drow input[type=number]:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
   .drow .tilde{color:var(--muted);font-weight:700}
   .drow .daysuffix{font-size:.83rem;color:var(--muted)}
   .drow .rowdel{border:1px solid var(--border);background:#fff;color:var(--warn);border-radius:8px;width:32px;height:34px;cursor:pointer;font-size:1rem;line-height:1}
   .drow .rowdel:hover{background:var(--warn-soft)}
-  .drow.invalid .ymd,.drow.invalid input[type=number]{border-color:#e7b9b9;background:#fdf6f6}
+  .drow .rowadd{border:1px dashed var(--main);background:var(--main-soft);color:var(--main-deep);border-radius:8px;padding:0 12px;height:34px;cursor:pointer;font-size:.82rem;font-weight:600;white-space:nowrap}
+  .drow .rowadd:hover{background:#e4e2f7}
+  .drow .rowadd:focus-visible{outline:2px solid var(--main);outline-offset:2px}
+  .drow.invalid .dfield,.drow.invalid input[type=number]{border-color:#e7b9b9;background:#fdf6f6}
   .rowwarn:empty{display:none}
   .rowwarn{width:100%;font-size:.76rem;color:var(--warn);padding-left:2px}
   .addrow{margin-top:4px}
@@ -404,10 +404,30 @@ function partsOf(dateStr){
   const p = String(dateStr).split("-");
   return { m: String(+p[1]), d: String(+p[2]) };
 }
-// 편집 행 객체 생성(월·일 원본 + 파생 날짜 함께 보관)
+// 'YYYY-MM-DD' → 'MM-DD' 표시(빈값이면 "")
+function toMMDD(dateStr){
+  if(!dateStr) return "";
+  const p = partsOf(dateStr);
+  return pad2(+p.m) + "-" + pad2(+p.d);
+}
+// 'MM-DD'(유연: 7-15, 07-15, 7.15, 7/15, 0715, 715) → 'YYYY-MM-DD'. 실패 시 ""
+function parseMMDD(txt){
+  const t = String(txt || "").trim();
+  if(!t) return "";
+  let mo, da;
+  const sep = t.match(/^(\d{1,2})\s*[-./ ]\s*(\d{1,2})$/);
+  if(sep){ mo = +sep[1]; da = +sep[2]; }
+  else{
+    const digits = t.replace(/\D/g, "");
+    if(digits.length === 4){ mo = +digits.slice(0,2); da = +digits.slice(2); }
+    else if(digits.length === 3){ mo = +digits.slice(0,1); da = +digits.slice(1); }
+    else return "";
+  }
+  return mkDate(mo, da);
+}
+// 편집 행 객체 생성(입력 원본 텍스트 + 파생 날짜 함께 보관)
 function mkRow(start, end, days){
-  const s = partsOf(start), e = partsOf(end);
-  return { sm:s.m, sd:s.d, em:e.m, ed:e.d, start:start||"", end:end||"", days };
+  return { startText: toMMDD(start), endText: toMMDD(end), start: start||"", end: end||"", days };
 }
 
 // 한 건 표기 조립
@@ -802,7 +822,7 @@ function selectPerson(empId){
   renderEditor();
 }
 
-function blankRow(){ return { sm:"", sd:"", em:"", ed:"", start:"", end:"", days:"" }; }
+function blankRow(){ return { startText:"", endText:"", start:"", end:"", days:"" }; }
 
 function renderEditor(){
   const row = state.byId[state.selected];
@@ -835,10 +855,9 @@ function renderEditor(){
       <div class="editor">
         ${notTarget}
         <h3>지정 내역 입력</h3>
-        <p class="hint">통보서에 적힌 사용시기를 행 단위로 입력하세요. 연도는 ${YEAR}년 고정이며 <b>월·일만</b> 입력합니다(숫자를 치면 다음 칸으로 자동 이동). 범위는 시작~종료(종료 미입력 시 단일 날짜), 일수는 소수점 3자리까지(반차 0.5 · 시간연차 0.125 등).</p>
+        <p class="hint">통보서에 적힌 사용시기를 행 단위로 입력하세요. 연도는 ${YEAR}년 고정, 날짜는 <b>월-일</b> 형식으로 입력합니다(예: <code>7-15</code>). 범위는 시작~종료(종료 미입력 시 단일 날짜), 일수는 소수점 3자리까지(반차 0.5 · 시간연차 0.125 등). <b>Tab</b>으로 시작→종료→일수→행 추가까지 이동할 수 있습니다.</p>
         ${rawNote}
         <div id="drows"></div>
-        <button class="btn sm addrow" id="addRowBtn">＋ 행 추가</button>
 
         <div class="calc" id="calcBox"></div>
 
@@ -853,83 +872,59 @@ function renderEditor(){
     </div>`;
 
   renderDrows();
-  document.getElementById("addRowBtn").addEventListener("click", ()=>{
-    state.editorRows.push(blankRow()); renderDrows(); recalc();
-  });
   document.getElementById("saveBtn").addEventListener("click", doSave);
   const clearBtn = document.getElementById("clearBtn");
   if(clearBtn) clearBtn.addEventListener("click", doClear);
   recalc();
 }
 
-function segClean(v){ return String(v||"").replace(/[^\d]/g,"").slice(0,2); }
-// 한 자리 입력만으로 값이 확정되어 다음 칸으로 넘어가야 하는지
-function segShouldAdvance(v, kind){
-  if(v.length >= 2) return true;
-  if(v.length === 1){
-    const n = parseInt(v,10);
-    if(kind === "month") return n >= 2 && n <= 9; // 10~12월은 1로 시작하므로 대기
-    if(kind === "day")   return n >= 4 && n <= 9; // 10~31일은 1~3으로 시작하므로 대기
+function addEditorRow(focus){
+  state.editorRows.push(blankRow());
+  renderDrows(); recalc();
+  if(focus){
+    const inputs = document.querySelectorAll("#drows .drow .d-start");
+    const last = inputs[inputs.length - 1];
+    if(last) last.focus();
   }
-  return false;
 }
 
 function renderDrows(){
   const host = document.getElementById("drows");
+  const n = state.editorRows.length;
   host.innerHTML = state.editorRows.map((r,i)=>{
+    const isLast = (i === n - 1);
     return `<div class="drow ${rowInvalid(r)?'invalid':''}" data-i="${i}">
-      <span class="ymd">
-        <span class="yfix">${YEAR}.</span>
-        <input class="dseg d-sm" inputmode="numeric" maxlength="2" placeholder="월" value="${r.sm||''}">
-        <span class="dot">.</span>
-        <input class="dseg d-sd" inputmode="numeric" maxlength="2" placeholder="일" value="${r.sd||''}">
-      </span>
+      <input class="dfield d-start" inputmode="numeric" placeholder="월-일" value="${r.startText||''}" title="시작일 (예: 7-15)">
       <span class="tilde">~</span>
-      <span class="ymd" title="종료(선택)">
-        <span class="yfix">${YEAR}.</span>
-        <input class="dseg d-em" inputmode="numeric" maxlength="2" placeholder="월" value="${r.em||''}">
-        <span class="dot">.</span>
-        <input class="dseg d-ed" inputmode="numeric" maxlength="2" placeholder="일" value="${r.ed||''}">
-      </span>
+      <input class="dfield d-end" inputmode="numeric" placeholder="월-일(선택)" value="${r.endText||''}" title="종료일(선택)">
       <input type="number" class="d-days" step="0.001" min="0" placeholder="일수" value="${r.days===''?'':r.days}">
       <span class="daysuffix">일</span>
-      <button class="rowdel" title="행 삭제">×</button>
+      <button class="rowdel" tabindex="-1" title="행 삭제">×</button>
+      ${isLast ? `<button class="rowadd" title="행 추가 (Tab 후 Enter)">＋ 행</button>` : ``}
       <div class="rowwarn"></div>
     </div>`;
   }).join("");
 
   host.querySelectorAll(".drow").forEach(el=>{
     const i = +el.dataset.i;
-    const sm = el.querySelector(".d-sm"), sd = el.querySelector(".d-sd");
-    const em = el.querySelector(".d-em"), ed = el.querySelector(".d-ed");
+    const start = el.querySelector(".d-start");
+    const end = el.querySelector(".d-end");
     const days = el.querySelector(".d-days");
 
-    // 월·일 입력값 → 상태 반영(파생 날짜 재계산) + 실시간 검증
-    function sync(){
+    // 입력값 → 상태 반영(파생 날짜 재계산). 재렌더 없이 포커스 유지
+    function syncDates(){
       const r = state.editorRows[i];
-      r.sm = segClean(sm.value); r.sd = segClean(sd.value);
-      r.em = segClean(em.value); r.ed = segClean(ed.value);
-      r.start = mkDate(r.sm, r.sd);
-      r.end   = mkDate(r.em, r.ed);
+      r.startText = start.value;
+      r.endText = end.value;
+      r.start = parseMMDD(start.value);
+      r.end = parseMMDD(end.value);
       recalc();
     }
-    // 자동 넘어가기 바인딩 (재렌더 없이 포커스 유지)
-    function bindSeg(input, nextInput, kind){
-      input.addEventListener("input", ()=>{
-        const v = segClean(input.value);
-        if(input.value !== v) input.value = v;
-        sync();
-        if(segShouldAdvance(v, kind) && nextInput){
-          nextInput.focus();
-          if(nextInput.select) nextInput.select();
-        }
-      });
-      input.addEventListener("blur", ()=> updateRowValidity(el, i));
-    }
-    bindSeg(sm, sd, "month");
-    bindSeg(sd, days, "day");
-    bindSeg(em, ed, "month");
-    bindSeg(ed, days, "day");
+    start.addEventListener("input", syncDates);
+    end.addEventListener("input", syncDates);
+    // 포커스 잃을 때 'MM-DD'로 정규화 표시 + 검증
+    start.addEventListener("blur", ()=>{ const r=state.editorRows[i]; if(r.start){ r.startText=toMMDD(r.start); start.value=r.startText; } updateRowValidity(el, i); });
+    end.addEventListener("blur", ()=>{ const r=state.editorRows[i]; if(r.end){ r.endText=toMMDD(r.end); end.value=r.endText; } updateRowValidity(el, i); });
 
     days.addEventListener("input", ()=>{ state.editorRows[i].days = days.value; recalc(); });
     days.addEventListener("blur", ()=> updateRowValidity(el, i));
@@ -939,6 +934,8 @@ function renderDrows(){
       if(state.editorRows.length===0) state.editorRows.push(blankRow());
       renderDrows(); recalc();
     });
+    const addBtn = el.querySelector(".rowadd");
+    if(addBtn) addBtn.addEventListener("click", ()=> addEditorRow(true));
 
     updateRowValidity(el, i);
   });
@@ -946,7 +943,7 @@ function renderDrows(){
 
 // 행이 (부분 입력이 있는데) 유효하지 않은지
 function rowInvalid(r){
-  const any = r.start || r.end || r.sm || r.sd || r.em || r.ed || r.days !== "";
+  const any = r.start || r.end || (r.startText||"") || (r.endText||"") || r.days !== "";
   return any && !isRowValid(r);
 }
 // 특정 행의 유효성 표시만 DOM에 직접 반영(재렌더 없음 → 포커스 유지)
@@ -956,7 +953,7 @@ function updateRowValidity(el, i){
   el.classList.toggle("invalid", invalid);
   let warn = "";
   if(invalid){
-    if(!r.start) warn = "시작 월·일을 입력하세요.";
+    if(!r.start) warn = "시작 날짜(월-일)를 입력하세요.";
     else if(r.end && r.end < r.start) warn = "종료일이 시작일보다 빠릅니다.";
     else if(!(Number(r.days) > 0)) warn = "일수는 0보다 커야 합니다.";
   }
