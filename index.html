@@ -109,7 +109,6 @@
   .team.open .team-chev{transform:rotate(180deg)}
   .team-body{display:none;border-top:1px solid var(--border)}
   .team.open .team-body{display:block}
-  .team-tools{display:flex;justify-content:flex-end;padding:10px 14px;border-bottom:1px dashed var(--border);background:#fbfbfd}
 
   table.members{width:100%;border-collapse:collapse}
   .members th,.members td{padding:10px 14px;text-align:left;font-size:.86rem;border-bottom:1px solid #f0f1f5}
@@ -611,9 +610,6 @@ function renderTeams(){
           <span class="team-chev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="m6 9 6 6 6-6"/></svg></span>
         </button>
         <div class="team-body">
-          <div class="team-tools">
-            <button class="btn sm" onclick="copyTeamNosub('${escapeAttr(name)}')">📋 이 팀 미제출자 복사</button>
-          </div>
           <table class="members">
             <thead><tr><th>성명(직급)</th><th>사번</th><th>잔여</th><th>제출 · 결과</th><th>지정 내역</th><th></th></tr></thead>
             <tbody>${rowsHtml}</tbody>
@@ -656,12 +652,6 @@ function nosubTextForTeam(name, members){
   const nosub = members.filter(r=>!isSubmitted(r)).map(r=>r.name);
   if(nosub.length === 0) return null;
   return `${name}: ${nosub.join(", ")}`;
-}
-function copyTeamNosub(name){
-  const groups = groupTargetsByTeam();
-  const line = nosubTextForTeam(name, groups[name] || []);
-  if(!line){ toast("이 팀은 미제출자가 없습니다.", "ok"); return; }
-  copyText(line);
 }
 function copyAllNosub(){
   const groups = groupTargetsByTeam();
