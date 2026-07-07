@@ -176,7 +176,7 @@
   .rawnote code{background:#fff;padding:1px 6px;border-radius:5px}
 
   .drow{display:flex;gap:8px;align-items:center;margin-bottom:9px;flex-wrap:wrap}
-  .drow .dfield{width:110px;padding:9px 12px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;color:var(--ink);background:#fff;letter-spacing:.02em}
+  .drow .dfield{width:96px;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;color:var(--ink);background:#fff;letter-spacing:.02em}
   .drow .dfield::placeholder{color:#c3c6d0;letter-spacing:normal}
   .drow .dfield:focus{outline:none;border-color:var(--main);box-shadow:0 0 0 3px var(--main-soft)}
   .drow input[type=number]{width:92px;padding:9px 10px;border:1px solid var(--border);border-radius:9px;font-family:inherit;font-size:.86rem;text-align:right}
@@ -194,12 +194,12 @@
   .addrow{margin-top:4px}
 
   /* 입력 행(좌) + 합계/미리보기(우) 2단 배치 */
-  .editor-grid{display:flex;gap:22px;align-items:flex-start;margin-top:6px}
+  .editor-grid{display:flex;gap:16px;align-items:flex-start;margin-top:6px}
   .editor-left{flex:1 1 auto;min-width:0}
-  .editor-right{flex:0 0 320px;position:sticky;top:82px}
+  .editor-right{flex:0 0 268px;position:sticky;top:82px}
   .editor-right .calc{margin-top:0}
   .editor-right .preview{margin-top:14px}
-  @media(max-width:860px){
+  @media(max-width:720px){
     .editor-grid{flex-direction:column}
     .editor-right{flex:1 1 auto;width:100%;position:static}
   }
@@ -912,7 +912,7 @@ function renderDrows(){
     return `<div class="drow ${rowInvalid(r)?'invalid':''}" data-i="${i}">
       <input class="dfield d-start" inputmode="numeric" placeholder="월-일" value="${r.startText||''}" title="시작일 (예: 7-15)">
       <span class="tilde">~</span>
-      <input class="dfield d-end" inputmode="numeric" placeholder="월-일(선택)" value="${r.endText||''}" title="종료일(선택)">
+      <input class="dfield d-end" inputmode="numeric" placeholder="월-일" value="${r.endText||''}" title="종료일(선택, 미입력 시 단일 날짜)">
       <input type="number" class="d-days" step="0.001" min="0" placeholder="일수" value="${r.days===''?'':r.days}">
       <span class="daysuffix">일</span>
       <button class="rowdel" tabindex="-1" title="행 삭제">×</button>
