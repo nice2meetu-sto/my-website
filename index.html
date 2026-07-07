@@ -125,7 +125,9 @@
   .m-name{font-weight:700}
   .m-grade{color:var(--muted);font-weight:400;font-size:.8rem;margin-left:3px}
   .m-emp{color:var(--muted);font-size:.8rem;font-variant-numeric:tabular-nums}
-  .m-desig{color:var(--ink);font-size:.8rem;max-width:230px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .members td.mcol-name{white-space:nowrap}
+  .members td.col-desig{max-width:240px;width:240px}
+  .m-desig{display:inline-block;vertical-align:middle;max-width:240px;color:var(--ink);font-size:.8rem;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
   .m-desig.empty{color:#b9bcc7}
 
   .badge{display:inline-flex;align-items:center;gap:4px;font-size:.74rem;font-weight:700;padding:3px 9px;border-radius:99px;white-space:nowrap}
@@ -573,7 +575,7 @@ function memberRowHtml(r, inCenter){
     <td class="m-emp">${escapeHtml(r.empId)}</td>
     <td class="num remain">${fmtNum(r.remaining)}</td>
     <td>${subBadge} ${resBadge}</td>
-    <td>${desig}</td>
+    <td class="col-desig">${desig}</td>
     <td class="num"><button class="btn sm" onclick="goEdit('${escapeAttr(r.empId)}')">${isSubmitted(r)?'수정':'입력'}</button></td>
   </tr>`;
 }
