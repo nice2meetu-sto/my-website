@@ -238,6 +238,39 @@
   #toast.ok{background:var(--valid)}
   #toast.err{background:var(--warn)}
 
+  /* ---------- 달력 모달 ---------- */
+  .modal-overlay{position:fixed;inset:0;background:rgba(30,33,50,.45);display:flex;align-items:center;justify-content:center;z-index:200;padding:16px}
+  .modal-overlay[hidden]{display:none}
+  .modal{background:#fff;border-radius:18px;box-shadow:0 24px 60px -20px rgba(0,0,0,.5);width:360px;max-width:100%;padding:18px 20px 16px;max-height:92vh;overflow:auto}
+  .modal-head{display:flex;justify-content:space-between;align-items:flex-start;gap:10px;margin-bottom:12px}
+  .modal-head b{font-size:1rem}
+  .modal-sub{display:block;font-size:.76rem;color:var(--muted);margin-top:3px;font-weight:400;line-height:1.4}
+  .modal-x{border:0;background:transparent;font-size:1.4rem;line-height:1;color:var(--muted);cursor:pointer;padding:0 2px}
+  .modal-x:hover{color:var(--ink)}
+  .cal-nav{display:flex;align-items:center;justify-content:space-between;margin-bottom:8px}
+  .cal-title{font-weight:700;font-size:.98rem}
+  .cal-navbtn{border:1px solid var(--border);background:#fff;border-radius:8px;width:34px;height:32px;cursor:pointer;color:var(--main-deep);font-size:.8rem}
+  .cal-navbtn:hover:not(:disabled){background:var(--main-soft)}
+  .cal-navbtn:disabled{opacity:.35;cursor:not-allowed}
+  .cal-dow{display:grid;grid-template-columns:repeat(7,1fr);gap:2px;margin-bottom:4px}
+  .cal-dow span{text-align:center;font-size:.72rem;color:var(--muted);font-weight:600;padding:4px 0}
+  .cal-dow .sun{color:#c0504d}.cal-dow .sat{color:#3f6aa0}
+  .cal-grid{display:grid;grid-template-columns:repeat(7,1fr);gap:2px}
+  .cal-day{aspect-ratio:1/1;border:1px solid transparent;border-radius:8px;background:transparent;cursor:pointer;font-family:inherit;font-size:.86rem;color:var(--ink);display:flex;align-items:center;justify-content:center;transition:.1s}
+  .cal-day:hover{background:var(--main-soft)}
+  .cal-day.sel{background:var(--main);color:#fff;font-weight:700}
+  .cal-day.sel:hover{background:var(--main-deep)}
+  .cal-day.blank{visibility:hidden;cursor:default}
+  .cal-day.sun{color:#c0504d}.cal-day.sat{color:#3f6aa0}
+  .cal-day.sel.sun,.cal-day.sel.sat{color:#fff}
+  .cal-summary{margin:12px 0 4px;min-height:38px;background:#fafbfd;border:1px solid var(--border);border-radius:10px;padding:9px 12px;font-size:.82rem;line-height:1.6}
+  .cal-summary .plab{color:var(--muted)}
+  .cal-summary .pval{font-weight:700;color:var(--main-deep)}
+  .cal-summary .empty{color:#b9bcc7}
+  .modal-actions{display:flex;align-items:center;gap:8px;margin-top:12px}
+  .calopen{margin-bottom:12px;border-color:var(--main);color:var(--main-deep)}
+  .calopen:hover{background:var(--main-soft)}
+
   @media (prefers-reduced-motion:reduce){*{animation:none!important;transition:none!important}}
 </style>
 </head>
@@ -324,6 +357,33 @@
       <div class="emptyhint">위 검색창에서 직원을 선택하면 지정 내역을 입력할 수 있습니다.</div>
     </div>
   </section>
+</div>
+
+<!-- ===== 달력 선택 모달 ===== -->
+<div class="modal-overlay" id="calModal" hidden>
+  <div class="modal" role="dialog" aria-modal="true" aria-label="날짜 선택">
+    <div class="modal-head">
+      <div>
+        <b>달력으로 날짜 선택</b>
+        <span class="modal-sub">여러 날짜를 클릭하세요. 연속된 날짜는 자동으로 기간으로 묶입니다.</span>
+      </div>
+      <button class="modal-x" id="calClose" title="닫기">×</button>
+    </div>
+    <div class="cal-nav">
+      <button class="cal-navbtn" id="calPrev" title="이전 달">◀</button>
+      <span class="cal-title" id="calTitle"></span>
+      <button class="cal-navbtn" id="calNext" title="다음 달">▶</button>
+    </div>
+    <div class="cal-dow"><span class="sun">일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span class="sat">토</span></div>
+    <div class="cal-grid" id="calGrid"></div>
+    <div class="cal-summary" id="calSummary"></div>
+    <div class="modal-actions">
+      <button class="btn sm" id="calClearSel">선택 초기화</button>
+      <div class="spacer"></div>
+      <button class="btn ghost" id="calCancel">취소</button>
+      <button class="btn primary" id="calApply">입력</button>
+    </div>
+  </div>
 </div>
 
 <div id="toast"></div>
@@ -882,6 +942,7 @@ function renderEditor(){
         ${rawNote}
         <div class="editor-grid">
           <div class="editor-left">
+            <button type="button" class="btn sm calopen" id="calOpenBtn">📅 달력으로 날짜 선택</button>
             <div id="drows"></div>
           </div>
           <div class="editor-right">
@@ -900,6 +961,7 @@ function renderEditor(){
 
   renderDrows();
   document.getElementById("saveBtn").addEventListener("click", doSave);
+  document.getElementById("calOpenBtn").addEventListener("click", openCal);
   const clearBtn = document.getElementById("clearBtn");
   if(clearBtn) clearBtn.addEventListener("click", doClear);
   recalc();
@@ -1042,6 +1104,111 @@ function recalc(){
 
   // 검증 결과 캐시(저장 시 사용)
   state._calc = { match, diffText, preview };
+}
+
+/* ==========================================================================
+ *  달력 선택 모달
+ * ========================================================================== */
+let calMonth = 6;              // 0=1월 … 11=12월 (기본 7월)
+const calSelected = new Set(); // 'YYYY-MM-DD'
+
+function calAddDays(dateStr, n){
+  const dt = new Date(dateStr + "T00:00:00Z");
+  dt.setUTCDate(dt.getUTCDate() + n);
+  return `${dt.getUTCFullYear()}-${pad2(dt.getUTCMonth()+1)}-${pad2(dt.getUTCDate())}`;
+}
+// 정렬된 날짜 → 연속 구간 묶기 [{start,end,count}]
+function groupConsecutive(dates){
+  const groups = [];
+  for(const d of dates){
+    const last = groups[groups.length-1];
+    if(last && d === calAddDays(last.end, 1)){ last.end = d; last.count++; }
+    else groups.push({ start:d, end:d, count:1 });
+  }
+  return groups;
+}
+
+function openCal(){
+  calSelected.clear();
+  // 기본 월: 편집 중 첫 날짜의 월, 없으면 7월
+  const withDate = state.editorRows.find(r => r.start);
+  calMonth = withDate ? new Date(withDate.start + "T00:00:00Z").getUTCMonth() : 6;
+  renderCal();
+  document.getElementById("calModal").hidden = false;
+}
+function closeCal(){ document.getElementById("calModal").hidden = true; }
+
+function renderCal(){
+  document.getElementById("calTitle").textContent = `${YEAR}년 ${calMonth+1}월`;
+  document.getElementById("calPrev").disabled = (calMonth <= 0);
+  document.getElementById("calNext").disabled = (calMonth >= 11);
+
+  const firstDow = new Date(Date.UTC(YEAR, calMonth, 1)).getUTCDay(); // 0 일
+  const daysInMonth = new Date(Date.UTC(YEAR, calMonth+1, 0)).getUTCDate();
+  const grid = document.getElementById("calGrid");
+  let cells = "";
+  for(let b=0; b<firstDow; b++) cells += `<span class="cal-day blank"></span>`;
+  for(let d=1; d<=daysInMonth; d++){
+    const ds = `${YEAR}-${pad2(calMonth+1)}-${pad2(d)}`;
+    const dow = (firstDow + d - 1) % 7;
+    const dowCls = dow===0 ? "sun" : (dow===6 ? "sat" : "");
+    const sel = calSelected.has(ds) ? "sel" : "";
+    cells += `<button type="button" class="cal-day ${dowCls} ${sel}" data-date="${ds}">${d}</button>`;
+  }
+  grid.innerHTML = cells;
+  grid.querySelectorAll(".cal-day:not(.blank)").forEach(el=>{
+    el.addEventListener("click", ()=>{
+      const ds = el.dataset.date;
+      if(calSelected.has(ds)) calSelected.delete(ds); else calSelected.add(ds);
+      el.classList.toggle("sel");
+      renderCalSummary();
+    });
+  });
+  renderCalSummary();
+}
+
+function renderCalSummary(){
+  const dates = [...calSelected].sort();
+  const box = document.getElementById("calSummary");
+  if(dates.length === 0){
+    box.innerHTML = `<span class="empty">날짜를 선택하면 여기에 미리보기가 표시됩니다.</span>`;
+    return;
+  }
+  const groups = groupConsecutive(dates);
+  const txt = groups.map(g => formatEntry(g.start, g.count>1 ? g.end : "", g.count)).join(", ");
+  box.innerHTML = `<span class="plab">추가될 내역 (${dates.length}일) →</span> <span class="pval">${escapeHtml(txt)}</span>`;
+}
+
+function applyCal(){
+  const dates = [...calSelected].sort();
+  if(dates.length === 0){ closeCal(); return; }
+  const groups = groupConsecutive(dates);
+  // 빈 행 제거 후 구간별 행 추가(일수 자동, 편집 가능)
+  state.editorRows = state.editorRows.filter(r => r.start || r.startText);
+  groups.forEach(g=>{
+    const end = g.count > 1 ? g.end : "";
+    state.editorRows.push({
+      startText: toMMDD(g.start),
+      endText: end ? toMMDD(end) : "",
+      start: g.start, end: end,
+      days: String(g.count), daysAuto: true
+    });
+  });
+  if(state.editorRows.length === 0) state.editorRows.push(blankRow());
+  renderDrows(); recalc();
+  closeCal();
+}
+
+// 모달 버튼 핸들러(1회 등록)
+function initCalModal(){
+  document.getElementById("calPrev").addEventListener("click", ()=>{ if(calMonth>0){ calMonth--; renderCal(); } });
+  document.getElementById("calNext").addEventListener("click", ()=>{ if(calMonth<11){ calMonth++; renderCal(); } });
+  document.getElementById("calClearSel").addEventListener("click", ()=>{ calSelected.clear(); renderCal(); });
+  document.getElementById("calApply").addEventListener("click", applyCal);
+  document.getElementById("calClose").addEventListener("click", closeCal);
+  document.getElementById("calCancel").addEventListener("click", closeCal);
+  document.getElementById("calModal").addEventListener("click", (e)=>{ if(e.target.id === "calModal") closeCal(); });
+  document.addEventListener("keydown", (e)=>{ if(e.key === "Escape" && !document.getElementById("calModal").hidden) closeCal(); });
 }
 
 /* ==========================================================================
@@ -1218,6 +1385,8 @@ function init(){
   document.getElementById("retryBtn").addEventListener("click", loadData);
   // 검색
   setupSearch();
+  // 달력 모달
+  initCalModal();
 
   if(SCRIPT_URL) loadData();
 }
