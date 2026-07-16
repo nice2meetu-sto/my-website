@@ -569,7 +569,10 @@ function isRowValid(r){
  *  집계 헬퍼
  * ========================================================================== */
 function isTarget(row){ return row.status === TARGET_STATUS; }
-function isSubmitted(row){ return String(row.designated || "").trim() !== ""; }
+// 제출완료 판정: 지정 값이 있거나(일반), 결과가 기록됨(입력없이 일치 처리 포함)
+function isSubmitted(row){
+  return String(row.designated || "").trim() !== "" || String(row.result || "").trim() !== "";
+}
 
 function computeKpi(){
   const targets = state.rows.filter(isTarget);
@@ -636,7 +639,7 @@ function memberRowHtml(r, inCenter){
       ? `<span class="badge ok">일치</span>`
       : `<span class="badge no">불일치</span>`;
   }
-  const desig = isSubmitted(r)
+  const desig = String(r.designated || "").trim()
     ? `<span class="m-desig" title="${escapeAttr(r.designated)}">${escapeHtml(r.designated)}</span>`
     : `<span class="m-desig empty">—</span>`;
   return `<tr class="${inCenter?'in-center':''}">
@@ -953,6 +956,7 @@ function renderEditor(){
 
         <div class="editor-actions">
           <button class="btn primary" id="saveBtn">저장</button>
+          <button class="btn" id="saveMatchBtn" title="입력값과 무관하게 결과를 '일치'로 기록" style="border-color:var(--valid);color:var(--valid)">일치로 기록</button>
           ${submitted ? `<button class="btn ghost" id="clearBtn" style="color:var(--warn)">제출 취소</button>` : ""}
           <div class="spacer"></div>
         </div>
@@ -961,6 +965,7 @@ function renderEditor(){
 
   renderDrows();
   document.getElementById("saveBtn").addEventListener("click", doSave);
+  document.getElementById("saveMatchBtn").addEventListener("click", doSaveMatch);
   document.getElementById("calOpenBtn").addEventListener("click", openCal);
   const clearBtn = document.getElementById("clearBtn");
   if(clearBtn) clearBtn.addEventListener("click", doClear);
@@ -1253,6 +1258,32 @@ async function doSave(){
     if(document.getElementById("saveBtn")){
       saveBtn.disabled = false; saveBtn.textContent = "저장";
     }
+  }
+}
+
+// 입력값과 무관하게 결과를 '일치'로 기록(빠른 처리)
+async function doSaveMatch(){
+  const row = state.byId[state.selected];
+  if(!row) return;
+  recalc();
+  const preview = state._calc ? state._calc.preview : buildDesignated(state.editorRows);
+  const btn = document.getElementById("saveMatchBtn");
+  if(btn){ btn.disabled = true; btn.textContent = "처리 중…"; }
+  try{
+    const res = await jsonp({ action:"submit", empId: row.empId, designated: preview, result: "일치" });
+    if(!res || !res.ok) throw new Error(res && res.error ? res.error : "저장 실패");
+    row.designated = res.designated != null ? res.designated : preview;
+    row.result = res.result != null ? res.result : "일치";
+    state.byId[row.empId] = row;
+    toast(`일치로 기록 · ${row.name}`, "ok");
+    renderKpi(); renderTeams(); renderEditor();
+    const si = document.getElementById("searchInput");
+    if(si){ si.value = ""; si.focus(); }
+  }catch(err){
+    toast("저장 실패: " + err.message, "err");
+  }finally{
+    const b2 = document.getElementById("saveMatchBtn");
+    if(b2){ b2.disabled = false; b2.textContent = "일치로 기록"; }
   }
 }
 
