@@ -439,9 +439,18 @@ function parseMMDD(txt){
   }
   return mkDate(mo, da);
 }
+// 시작~종료(포함) 일수. 단일 날짜=1. 유효하지 않으면 null
+function dayCount(start, end){
+  if(!start) return null;
+  if(!end) return 1;
+  const s = new Date(start + "T00:00:00Z"), e = new Date(end + "T00:00:00Z");
+  const diff = Math.round((e - s) / 86400000) + 1;
+  return diff >= 1 ? diff : null;
+}
 // 편집 행 객체 생성(입력 원본 텍스트 + 파생 날짜 함께 보관)
+// daysAuto: 일수를 날짜 기준으로 자동 채울지(역파싱된 값은 보존 위해 false)
 function mkRow(start, end, days){
-  return { startText: toMMDD(start), endText: toMMDD(end), start: start||"", end: end||"", days };
+  return { startText: toMMDD(start), endText: toMMDD(end), start: start||"", end: end||"", days, daysAuto: false };
 }
 
 // 한 건 표기 조립
@@ -817,7 +826,7 @@ function selectPerson(empId){
   const row = state.byId[empId];
   if(!row) return;
   state.selected = empId;
-  document.getElementById("searchInput").value = `${row.name} · ${row.empId}`;
+  document.getElementById("searchInput").value = row.name;
   document.getElementById("autocomplete").classList.remove("show");
 
   // 기존 지정 역파싱
@@ -836,7 +845,7 @@ function selectPerson(empId){
   renderEditor();
 }
 
-function blankRow(){ return { startText:"", endText:"", start:"", end:"", days:"" }; }
+function blankRow(){ return { startText:"", endText:"", start:"", end:"", days:"", daysAuto:true }; }
 
 function renderEditor(){
   const row = state.byId[state.selected];
@@ -869,7 +878,7 @@ function renderEditor(){
       <div class="editor">
         ${notTarget}
         <h3>지정 내역 입력</h3>
-        <p class="hint">통보서에 적힌 사용시기를 행 단위로 입력하세요. 연도는 ${YEAR}년 고정, 날짜는 <b>월-일</b> 형식으로 입력합니다(예: <code>7-15</code>). 범위는 시작~종료(종료 미입력 시 단일 날짜), 일수는 소수점 3자리까지(반차 0.5 · 시간연차 0.125 등). <b>Tab</b>으로 시작→종료→일수→행 추가까지 이동할 수 있습니다.</p>
+        <p class="hint">통보서에 적힌 사용시기를 행 단위로 입력하세요. 연도는 ${YEAR}년 고정, 날짜는 <b>월-일</b> 형식으로 입력합니다(예: <code>7-15</code>). 범위는 시작~종료(종료 미입력 시 단일 날짜). <b>일수는 날짜 기준으로 자동 입력</b>되며 반차·시간연차(0.5·0.125 등)는 직접 수정하세요. <b>Tab</b>으로 시작→종료→일수→행 추가까지 이동할 수 있습니다.</p>
         ${rawNote}
         <div class="editor-grid">
           <div class="editor-left">
@@ -936,6 +945,11 @@ function renderDrows(){
       r.endText = end.value;
       r.start = parseMMDD(start.value);
       r.end = parseMMDD(end.value);
+      // 일수 자동 채움(수동 편집 전이거나 비어있을 때만)
+      if(r.daysAuto){
+        const c = dayCount(r.start, r.end);
+        if(c != null){ r.days = String(c); days.value = String(c); }
+      }
       recalc();
     }
     start.addEventListener("input", syncDates);
@@ -944,7 +958,13 @@ function renderDrows(){
     start.addEventListener("blur", ()=>{ const r=state.editorRows[i]; if(r.start){ r.startText=toMMDD(r.start); start.value=r.startText; } updateRowValidity(el, i); });
     end.addEventListener("blur", ()=>{ const r=state.editorRows[i]; if(r.end){ r.endText=toMMDD(r.end); end.value=r.endText; } updateRowValidity(el, i); });
 
-    days.addEventListener("input", ()=>{ state.editorRows[i].days = days.value; recalc(); });
+    days.addEventListener("input", ()=>{
+      const r = state.editorRows[i];
+      r.days = days.value;
+      // 직접 입력하면 자동 채움 해제, 비우면 다시 자동
+      r.daysAuto = (days.value.trim() === "");
+      recalc();
+    });
     days.addEventListener("blur", ()=> updateRowValidity(el, i));
 
     el.querySelector(".rowdel").addEventListener("click", ()=>{
